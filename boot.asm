@@ -1,9 +1,17 @@
 ORG 0
 BITS 16
 
-jmp 0x7c0:start
+; Dummy BIOS Parameter Block
+bpb:
+    jmp short step1
+    nop
 
-start:
+times 33 db 0
+
+step1:
+    jmp 0x7c0:step2
+
+step2:
     cli ; Disable interrupts
     mov ax, 0x7c0
     mov ds, ax
