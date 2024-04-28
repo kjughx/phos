@@ -3,13 +3,15 @@ BIN=bin
 OBJ=build
 
 TARGET=i686-elf
-CFLAGS=-ffreestanding -O0 -nostdlib
+CFLAGS=-std=gnu99 -Wall -Werror -Wno-cpp -O0 -Isrc/ -Iinc/ -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostartfiles -nodefaultlibs -nostdlib
 LDFLAGS=-g -relocatable
 CC=gcc
 
 BOOT_SRCS = boot/boot.asm
 BINS=$(BIN)/boot.bin $(BIN)/kernel.bin
-OBJS=$(OBJ)/kernel.o
+OBJS=$(OBJ)/kernel.asm.o $(OBJ)/kernel.o
+
+KERNEL_SRCS = $(SRC)/kernel.c
 
 all: $(BINS)
 	rm -f $(BIN)/os.bin
@@ -24,8 +26,11 @@ $(BIN)/kernel.bin: $(OBJS)
 $(BIN)/boot.bin: $(SRC)/boot/boot.asm
 	nasm -f bin $< -o $@
 
-$(OBJ)/%.o: $(SRC)/%.asm
+$(OBJ)/%.asm.o: $(SRC)/%.asm
 	nasm -f elf $< -o $@
+
+$(OBJ)/%.o: $(SRC)/%.c
+	$(TARGET)-$(CC) $(CFLAGS) -c $< -o $@
 
 .PHONY: clean
 clean:
