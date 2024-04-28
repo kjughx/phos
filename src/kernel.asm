@@ -21,3 +21,4 @@ _start:
 
     jmp $ ; Never return
 
+times 512-($ - $$) db 0
