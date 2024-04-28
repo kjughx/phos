@@ -1,4 +1,10 @@
+SRC=src
+BIN=bin
+OBJ=build
+
 all:
-	nasm -f bin ./boot.asm -o ./boot.bin
-	dd if=./message.txt >> ./boot.bin
-	dd if=/dev/zero bs=512 count=1 >> ./boot.bin
+	nasm -f bin $(SRC)/boot/boot.asm -o $(BIN)/boot.bin
+
+.PHONY: clean
+clean:
+	@rm -rf $(OBJ)/* $(BIN)/*
