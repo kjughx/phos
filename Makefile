@@ -8,6 +8,7 @@ CC := i686-elf-gcc
 LD := i686-elf-ld
 
 BINS = $(BIN)/boot.bin $(BIN)/kernel.bin
+# kernel.asm.o has to be first to be linked
 OBJS := $(OBJ)/src/kernel.asm.o
 
 INCS := $(wildcard $(SRC)/**/*.h) $(wildcard $(SRC)/*.h)

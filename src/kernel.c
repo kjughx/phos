@@ -2,6 +2,7 @@
 #include <stdint.h>
 
 #include "idt/idt.h"
+#include "io/io.h"
 #include "kernel.h"
 #include "string/string.h"
 
@@ -13,8 +14,6 @@ void kernel_main() {
 
     /* Initialize the interrupt desciptor table */
     idt_init();
-
-    problem();
 
     /* Never return */
     for (;;) {
