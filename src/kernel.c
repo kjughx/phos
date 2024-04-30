@@ -14,8 +14,9 @@ void kernel_main() {
 
     /* Initialize the interrupt desciptor table */
     idt_init();
+    asm volatile("sti");
 
     /* Never return */
-    for (;;) {
-    }
+    for (;;)
+        ;
 }
