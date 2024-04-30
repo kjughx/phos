@@ -3,11 +3,6 @@ OUTPUT_FORMAT(binary)
 SECTIONS
 {
     . = 1M;
-    .asm : ALIGN(4096)
-        {
-        *(.asm)
-    }
-
     .text : ALIGN(4096)
     {
         *(.text)
@@ -29,4 +24,10 @@ SECTIONS
         *(COMMON)
         *(.bss)
     }
+
+    .asm : ALIGN(4096)
+        {
+        *(.asm)
+    }
+
 }
