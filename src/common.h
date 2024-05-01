@@ -15,4 +15,7 @@ typedef _Bool bool;
 
 #define NULL ((void*)0)
 
+#define MAX(x, y) ((x) > (y) ? (x) : (y))
+#define MIN(x, y) ((x) < (y) ? (x) : (y))
+
 #endif /* _COMMON_H_ */

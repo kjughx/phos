@@ -18,15 +18,12 @@ ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
 OBJS += $(patsubst src/%.c, $(OBJ)/%.o, $(C_SRCS))
 OBJS += $(filter-out build/kernel.asm.o, $(patsubst src/%.asm, $(OBJ)/%.asm.o, $(ASM_SRCS)))
 
-all:
-	@bear -- make _all
-
-_all: $(BINS)
+all: $(BINS)
 	@rm -f $(BIN)/os.bin
 	dd if=$(BIN)/boot.bin >> $(BIN)/os.bin
 	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
 	dd if=/dev/zero bs=512 count=100 >> $(BIN)/os.bin
-#
+
 $(BIN)/kernel.bin: $(OBJS)
 	$(LD) $(LDFLAGS) $(OBJS) -o $(OBJ)/kernelfull.o
 	$(CC) $(CFLAGS) -T linker.ld $(OBJ)/kernelfull.o -o $@
@@ -52,4 +49,8 @@ qemu: all
 clean:
 	@rm -rf $(OBJ) $(BIN)
 
-.PHONY: all _all gdb qemu clean
+cc:
+	@make clean
+	@bear -- make all
+
+.PHONY: all _all gdb qemu clean cc
