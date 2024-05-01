@@ -15,4 +15,7 @@
 
 #define PHOS_MAX_PATH 108
 
+#define PHOS_MAX_FILESYSTEMS 12
+#define PHOS_MAX_FILE_DESCRIPTORS 512
+
 #endif /* _CONFIG_H */

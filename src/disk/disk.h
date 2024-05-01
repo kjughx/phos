@@ -1,6 +1,8 @@
 #ifndef _DISK_H_
 #define _DISK_H_
 
+#include "fs/file.h"
+
 typedef enum disk_type {
     disk_type_real = 0,
 } disk_type_e;
@@ -8,6 +10,8 @@ typedef enum disk_type {
 struct disk {
     disk_type_e type;
     int sector_size;
+
+    struct filesystem* filesystem;
 };
 
 void disk_search_and_init();

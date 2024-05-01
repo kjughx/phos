@@ -3,6 +3,7 @@
 #include "io/io.h"
 #include "memory/memory.h"
 #include "status.h"
+#include <fs/file.h>
 
 struct disk disk;
 
@@ -33,7 +34,9 @@ static int disk_read_sector(int lba, int total, void* buf) {
 
 void disk_search_and_init() {
     memset(&disk, 0, sizeof(struct disk));
-    disk.type = disk_type_real, disk.sector_size = PHOS_SECTOR_SIZE;
+    disk.type = disk_type_real;
+    disk.sector_size = PHOS_SECTOR_SIZE;
+    disk.filesystem = fs_resolve(&disk);
 }
 
 struct disk* disk_get(int index) {
