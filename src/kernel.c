@@ -3,6 +3,7 @@
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
+#include <disk/disk.h>
 
 static struct paging_4gb_chunck* kchunk = NULL;
 
@@ -11,6 +12,9 @@ void kernel_main() {
 
     /* Initialize the kernel heap */
     kheap_init();
+
+    /* Search and initialize disks */
+    disk_search_and_init();
 
     /* Initialize the interrupt desciptor table */
     idt_init();
