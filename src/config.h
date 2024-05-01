@@ -13,4 +13,6 @@
 
 #define PHOS_SECTOR_SIZE 512
 
+#define PHOS_MAX_PATH 108
+
 #endif /* _CONFIG_H */

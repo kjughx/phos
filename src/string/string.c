@@ -1,4 +1,5 @@
 #include "string.h"
+#include "common.h"
 #include "kernel.h"
 
 uint16_t* video_mem = 0;
@@ -14,6 +15,24 @@ size_t strlen(const char* str) {
     }
 
     return len;
+}
+
+size_t strnlen(const char* str, size_t max) {
+    size_t len = 0;
+    while (str[len] && len != max) {
+        len++;
+    }
+
+    return len;
+}
+
+bool is_digit(char c) { return (c >= 48 && c <= 57); }
+
+int to_digit(char c) {
+    if (!is_digit(c))
+        return c;
+
+    return c - 48;
 }
 
 void terminal_putchar(int x, int y, char c, char color) {

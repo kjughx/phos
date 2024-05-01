@@ -10,6 +10,8 @@ typedef __UINT16_TYPE__ uint16_t;
 typedef __UINT8_TYPE__ uint8_t;
 
 typedef _Bool bool;
+#define true ((bool)1)
+#define false ((bool)0)
 
 #define NULL ((void*)0)
 
