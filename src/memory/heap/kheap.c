@@ -1,6 +1,7 @@
 #include "kheap.h"
 #include "config.h"
 #include "heap.h"
+#include "memory/memory.h"
 #include "string/string.h"
 
 struct heap kernel_heap;
@@ -19,5 +20,10 @@ void kheap_init() {
 }
 
 void* kmalloc(size_t size) { return heap_malloc(&kernel_heap, size); }
+void* kzalloc(size_t size) {
+    void* p = heap_malloc(&kernel_heap, size);
+    memset(p, 0, size);
+    return p;
+}
 
 void kfree(void* p) { return heap_free(&kernel_heap, p); }

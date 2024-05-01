@@ -4,6 +4,7 @@
 #include "heap.h"
 #include "memory/memory.h"
 #include "status.h"
+#include "string/string.h"
 
 #define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
 #define ALIGN(x, a) __ALIGN_MASK(x, (typeof(x))(a) - 1)
@@ -29,7 +30,7 @@ static int heap_get_start_block(struct heap* heap, uint32_t total_blocks) {
     struct heap_table* table = heap->table;
     int bc = 0;
     int bs = -1;
-    for (size_t i = 0; i < table->total && bc != total_blocks; i++, bc++) {
+    for (size_t i = 0; i < table->total; i++) {
         if (HEAP_TYPE(table->entries[i]) != HEAP_BLOCK_TABLE_ENTRY_FREE) {
             bc = 0;
             bs = -1;
@@ -38,6 +39,9 @@ static int heap_get_start_block(struct heap* heap, uint32_t total_blocks) {
 
         if (bs == -1)
             bs = i;
+        bc++;
+        if (bc == total_blocks)
+            break;
     }
 
     if (bs == -1)
@@ -114,7 +118,8 @@ void* heap_malloc_blocks(struct heap* heap, uint32_t total_blocks) {
 }
 
 void* heap_malloc(struct heap* heap, size_t size) {
-    return heap_malloc_blocks(heap, ALIGN_BLOCK(size) / PHOS_HEAP_BLOCK_SIZE);
+    int aligned = ALIGN_BLOCK(size);
+    return heap_malloc_blocks(heap, aligned / PHOS_HEAP_BLOCK_SIZE);
 }
 
 void heap_free(struct heap* heap, void* p) {
