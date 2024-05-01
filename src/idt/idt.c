@@ -1,4 +1,4 @@
-#include <stdint.h>
+#include "common.h"
 
 #include "config.h"
 #include "idt.h"

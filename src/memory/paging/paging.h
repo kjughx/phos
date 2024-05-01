@@ -1,7 +1,7 @@
 #ifndef _PAGING_H_
 #define _PAGING_H_
 
-#include <stdint.h>
+#include "common.h"
 
 #define PAGING_CACHE_DISABLED 0b00010000
 #define PAGING_WRITE_THROUGH 0b00001000

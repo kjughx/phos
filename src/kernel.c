@@ -1,8 +1,5 @@
-#include <stddef.h>
-#include <stdint.h>
-
-#include "idt/idt.h"
 #include "kernel.h"
+#include "idt/idt.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"

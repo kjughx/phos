@@ -1,7 +1,6 @@
-#include <stdbool.h>
-
-#include "config.h"
 #include "heap.h"
+#include "common.h"
+#include "config.h"
 #include "memory/memory.h"
 #include "status.h"
 #include "string/string.h"

@@ -2,7 +2,7 @@ SRC := src
 BIN := bin
 OBJ := build
 
-CFLAGS := -std=gnu99 -Wall -Werror -Wno-cpp -O0 -Isrc/ -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -g
+CFLAGS := -std=gnu99 -Wall -Werror -Wno-cpp -O0 -Isrc/ -ffreestanding -falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce -fomit-frame-pointer -finline-functions -fno-builtin -nostartfiles -nodefaultlibs -nostdlib -isystem src/ -nostdinc
 LDFLAGS := -g -relocatable
 CC := i686-elf-gcc
 LD := i686-elf-ld

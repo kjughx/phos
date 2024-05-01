@@ -1,7 +1,7 @@
 #ifndef _K_HEAP_H
 #define _K_HEAP_H
 
-#include <stddef.h>
+#include "common.h"
 
 void kheap_init();
 void* kmalloc(size_t size);

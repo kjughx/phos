@@ -1,8 +1,7 @@
-#include <stdint.h>
-
+#include "paging.h"
+#include "common.h"
 #include "kernel.h"
 #include "memory/heap/kheap.h"
-#include "paging.h"
 #include "status.h"
 
 static pte_t* current_directory = 0;

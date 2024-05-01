@@ -1,6 +1,6 @@
 #ifndef _MEMORY_H_
 #define _MEMORY_H_
-#include <stddef.h>
+#include "common.h"
 
 void* memset(void* p, int c, size_t size);
 
