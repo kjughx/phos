@@ -27,7 +27,7 @@ static inline bool heap_validate_alignment(void* p) {
 
 static int heap_get_start_block(struct heap* heap, uint32_t total_blocks) {
     struct heap_table* table = heap->table;
-    int bc = 0;
+    uint32_t bc = 0;
     int bs = -1;
     for (size_t i = 0; i < table->total; i++) {
         if (HEAP_TYPE(table->entries[i]) != HEAP_BLOCK_TABLE_ENTRY_FREE) {
