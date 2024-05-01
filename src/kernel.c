@@ -6,8 +6,6 @@
 #include "memory/heap/kheap.h"
 #include "string/string.h"
 
-extern void problem();
-
 void kernel_main() {
     terminal_init();
     print("Hello, World!");
@@ -17,7 +15,9 @@ void kernel_main() {
 
     /* Initialize the interrupt desciptor table */
     idt_init();
-    asm volatile("sti");
+
+    /* Enable system interrupts*/
+    enable_interrupts();
 
     /* Never return */
     for (;;)
