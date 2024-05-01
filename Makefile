@@ -13,8 +13,8 @@ OBJS := $(OBJ)/src/kernel.asm.o
 
 INCS := $(wildcard $(SRC)/**/*.h) $(wildcard $(SRC)/*.h)
 
-C_SRCS := $(wildcard $(SRC)/**/*.c) $(wildcard $(SRC)/*.c)
-ASM_SRCS := $(filter-out src/boot/boot.asm, $(wildcard $(SRC)/**/*.asm) $(wildcard $(SRC)/*.asm))
+C_SRCS := $(shell find src -name "*.c")
+ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
 
 OBJS += $(patsubst %.c, $(OBJ)/%.o, $(C_SRCS))
 OBJS += $(filter-out build/src/kernel.asm.o, $(patsubst %.asm, $(OBJ)/%.asm.o, $(ASM_SRCS)))
@@ -45,7 +45,7 @@ gdb: all
 	gdb --command=debug.gdb
 
 qemu: all
-	qemu-system-x86_64 -hda bin/os.bin
+	qemu-system-i386 -hda bin/os.bin
 
 clean:
 	@rm -rf $(OBJ)/* $(BIN)/*
