@@ -1,7 +1,9 @@
-#include "paging.h"
+#include <stdint.h>
+
 #include "kernel.h"
 #include "memory/heap/kheap.h"
-#include <stdint.h>
+#include "paging.h"
+#include "status.h"
 
 static pte_t* current_directory = 0;
 
@@ -46,4 +48,35 @@ pte_t* paging_4gb_chunk_get_directory(struct paging_4gb_chunck* chunk) {
         panic("Invalid argument paging_4gb_chunk_get_directory");
 
     return chunk->directory_entry;
+}
+
+int paging_get_indexes(void* vaddr, pte_t* directory_index, pte_t* table_index) {
+    if (!PAGING_ALIGNED(vaddr))
+        return -EINVAL;
+
+    *directory_index = ((pte_t)vaddr / (PAGING_TOTAL_ENTRIES_PER_TABLE * PAGING_PAGE_SIZE));
+    *table_index =
+        ((pte_t)vaddr % (PAGING_TOTAL_ENTRIES_PER_TABLE * PAGING_PAGE_SIZE)) / PAGING_PAGE_SIZE;
+
+    return 0;
+}
+
+int paging_set(pte_t* directory, void* vaddr, pte_t val) {
+    pte_t directory_index = 0;
+    pte_t table_index = 0;
+    int ret;
+    pte_t entry;
+    pte_t* table;
+
+    if (!PAGING_ALIGNED(vaddr))
+        return -EINVAL;
+
+    if ((ret = paging_get_indexes(vaddr, &directory_index, &table_index) < 0))
+        return ret;
+
+    entry = directory[directory_index];
+    table = (pte_t*)(entry & 0xfffff000); /* Top 20 bits is the table address */
+    table[table_index] = val;
+
+    return 0;
 }
