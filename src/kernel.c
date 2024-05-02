@@ -1,15 +1,31 @@
 #include "kernel.h"
+#include "boot/gdt/gdt.h"
+#include "config.h"
 #include "disk/disk.h"
 #include "fs/file.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
+#include <memory/memory.h>
 
 static struct paging_4gb_chunck* kchunk = NULL;
 
+struct gdt gdt_real[PHOS_TOTAL_GDT_SEGMENTS];
+struct gdt_structured gdt_structured[PHOS_TOTAL_GDT_SEGMENTS] = {
+    {.base = 0x00, .limit = 0x00, .type = 0x00},       /* NULL Segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A}, /* Kernel code segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92}, /* Kernel data segment */
+};
+
 void kernel_main() {
     terminal_init();
+
+    memset(gdt_real, 0, sizeof(gdt_real));
+    gdt_structured_to_gdt(gdt_real, gdt_structured, PHOS_TOTAL_GDT_SEGMENTS);
+
+    /* Load the GDT */
+    gdt_load(gdt_real, sizeof(gdt_real));
 
     /* Initialize the kernel heap */
     kheap_init();
