@@ -59,18 +59,13 @@ void kernel_main() {
     kchunk = paging_new_4gb(PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
 
     /* Switch to kernel paging chunk */
-    paging_switch(paging_4gb_chunk_get_directory(kchunk));
+    paging_switch(kchunk);
 
     /* Enable paging */
     enable_paging();
 
     /* Enable system interrupts*/
-    // enable_interrupts();
-    struct process* process = NULL;
-    if (process_load("0:/blank.bin", &process) < 0)
-        panic("Failed to load blank.bin");
-
-    task_run_first_task();
+    enable_interrupts();
 
     print("Hello, World!");
     /* Never return */

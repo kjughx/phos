@@ -24,13 +24,12 @@ struct paging_4gb_chunck {
 };
 
 struct paging_4gb_chunck* paging_new_4gb(uint8_t flags);
-pte_t* paging_4gb_chunk_get_directory(struct paging_4gb_chunck* chunk);
-void paging_switch(pte_t* directory);
+void paging_switch(struct paging_4gb_chunck* directory);
 extern void enable_paging();
 int paging_set(pte_t* directory, void* vaddr, pte_t val);
 void paging_free_4gb(struct paging_4gb_chunck* chunk);
-int paging_map(pte_t* directory, void* vaddr, void* paddr, int flags);
-int paging_map_range(pte_t* directory, void* vaddr, void* paddr, uint32_t count, int flags);
-int paging_map_to(pte_t* directory, void* vaddr, void* paddr, void* pend, int flags);
+int paging_map(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, int flags);
+int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count, int flags);
+int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, void* pend, int flags);
 
 #endif /* _PAGING_H_ */

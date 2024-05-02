@@ -47,16 +47,9 @@ void paging_free_4gb(struct paging_4gb_chunck* chunk) {
     kfree(chunk);
 }
 
-void paging_switch(pte_t* directory) {
-    paging_load_directory(directory);
-    current_directory = directory;
-}
-
-pte_t* paging_4gb_chunk_get_directory(struct paging_4gb_chunck* chunk) {
-    if (!chunk)
-        panic("Invalid argument paging_4gb_chunk_get_directory");
-
-    return chunk->directory_entry;
+void paging_switch(struct paging_4gb_chunck* directory) {
+    paging_load_directory(directory->directory_entry);
+    current_directory = directory->directory_entry;
 }
 
 int paging_get_indexes(void* vaddr, pte_t* directory_index, pte_t* table_index) {
@@ -90,14 +83,14 @@ int paging_set(pte_t* directory, void* vaddr, pte_t val) {
     return 0;
 }
 
-int paging_map(pte_t* directory, void* vaddr, void* paddr, int flags) {
+int paging_map(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, int flags) {
     if (!PAGING_ALIGNED(vaddr) || ! PAGING_ALIGNED(paddr))
         return -EINVAL;
 
-    return paging_set(directory, vaddr, (pte_t)paddr | flags);
+    return paging_set(directory->directory_entry, vaddr, (pte_t)paddr | flags);
 }
 
-int paging_map_range(pte_t* directory, void* vaddr, void* paddr, uint32_t count, int flags) {
+int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count, int flags) {
     for (uint32_t i = 0; i < count; i++) {
         if(paging_map(directory, vaddr, paddr, flags) == 0)
             break;
@@ -109,7 +102,7 @@ int paging_map_range(pte_t* directory, void* vaddr, void* paddr, uint32_t count,
     return 0;
 }
 
-int paging_map_to(pte_t* directory, void* vaddr, void* paddr, void* pend, int flags) {
+int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, void* pend, int flags) {
     if (!PAGING_ALIGNED(vaddr))
         return -EINVAL;
     if (!PAGING_ALIGNED(paddr))

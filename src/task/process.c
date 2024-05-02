@@ -62,7 +62,7 @@ static int process_load_data(const char* filename, struct process* process) {
 }
 
 static int process_map_binary(struct process* process) {
-    return paging_map_to(process->task->page_directory->directory_entry,
+    return paging_map_to(process->task->page_directory,
                         (void*)PHOS_PROGRAM_VIRTUAL_ADDRESS, process->p,
                         (void*)ALIGN_PAGE(process->p + process->size),
                         PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
