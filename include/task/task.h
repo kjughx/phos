@@ -20,12 +20,16 @@ struct registers {
     uint32_t ss;
 };
 
+struct process;
 struct task {
     /* Page directory of the task */
     struct paging_4gb_chunck* page_directory;
 
     /* Registers of the task when it's not running */
     struct registers registers;
+
+    /* The process of the task */
+    struct process* process;
 
     /* Next task in the linked list */
     struct task* next;
@@ -34,7 +38,7 @@ struct task {
     struct task* prev;
 };
 
-struct task* task_new();
+struct task* task_new(struct process* process);
 struct task* task_current();
 struct task* task_get_next();
 void task_free(struct task* task);
