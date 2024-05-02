@@ -12,6 +12,8 @@
 #define PAGING_TOTAL_ENTRIES_PER_TABLE 1024
 #define PAGING_PAGE_SIZE 4096
 
+#define ALIGN_PAGE(x) ALIGN((uint32_t)x, PAGING_PAGE_SIZE)
+
 #define PAGING_ALIGNED(x) (((uint32_t)(x) % PAGING_PAGE_SIZE) == 0)
 
 /* Page table entry */
@@ -27,5 +29,8 @@ void paging_switch(pte_t* directory);
 extern void enable_paging();
 int paging_set(pte_t* directory, void* vaddr, pte_t val);
 void paging_free_4gb(struct paging_4gb_chunck* chunk);
+int paging_map(pte_t* directory, void* vaddr, void* paddr, int flags);
+int paging_map_range(pte_t* directory, void* vaddr, void* paddr, uint32_t count, int flags);
+int paging_map_to(pte_t* directory, void* vaddr, void* paddr, void* pend, int flags);
 
 #endif /* _PAGING_H_ */

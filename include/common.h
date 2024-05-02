@@ -18,4 +18,7 @@ typedef _Bool bool;
 #define MAX(x, y) ((x) > (y) ? (x) : (y))
 #define MIN(x, y) ((x) < (y) ? (x) : (y))
 
+#define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
+#define ALIGN(x, a) __ALIGN_MASK(x, (typeof(x))(a)-1)
+
 #endif /* _COMMON_H_ */

@@ -5,10 +5,6 @@
 #include "status.h"
 #include "string/string.h"
 
-#define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
-#define ALIGN(x, a) __ALIGN_MASK(x, (typeof(x))(a)-1)
-#define ALIGN_BLOCK(x) ALIGN(x, PHOS_HEAP_BLOCK_SIZE)
-
 #define HEAP_TYPE(x) ((x) & 0x0f)
 
 static int heap_validate_table(void* p, void* end, struct heap_table* table) {
