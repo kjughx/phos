@@ -45,6 +45,11 @@ static int file_descriptor_new(struct file_descriptor** desc) {
     return -ENOMEM;
 }
 
+ static void file_descriptor_free(struct file_descriptor* desc) {
+     file_descriptors[desc->index - 1] = 0x00;
+     kfree(desc);
+ }
+
 static struct file_descriptor* file_descriptor_get(int fd) {
     if (fd <= 0 || fd >= PHOS_MAX_FILE_DESCRIPTORS)
         return NULL;
@@ -154,9 +159,13 @@ int fread(void* p, uint32_t size, uint32_t n, int fd) {
 }
 
 int fclose(int fd) {
+    int ret;
     struct file_descriptor* desc;
     if (!(desc = file_descriptor_get(fd)))
         return -EINVAL;
 
-    return desc->fs->close(desc->private);
+    if ((ret = desc->fs->close(desc->private)) == 0)
+        file_descriptor_free(desc);
+
+    return ret;
 }
