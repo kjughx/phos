@@ -53,6 +53,17 @@ char* strcpy(char* dest, const char* src) {
     return res;
 }
 
+char* strncpy(char* dest, const char* src, size_t n) {
+    char* res = dest;
+
+    while (*src && n-- > 1)
+        *(dest++) = *(src++);
+
+    *dest = 0;
+
+    return res;
+}
+
 int strncmp(const char* s1, const char* s2, size_t n) {
     unsigned char u1, u2;
     while (n-- > 0) {
