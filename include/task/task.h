@@ -13,7 +13,7 @@ struct registers {
     uint32_t ecx;
     uint32_t eax;
 
-    uint32_t pc;
+    uint32_t ip;
     uint32_t cs;
     uint32_t flags;
     uint32_t esp;
@@ -42,5 +42,12 @@ struct task* task_new(struct process* process);
 struct task* task_current();
 struct task* task_get_next();
 void task_free(struct task* task);
+int task_switch(struct task* task);
+int task_page();
+
+void task_run_first_task();
+void task_return(struct registers* regs);
+void restore_gpr(struct registers* regs);
+void user_registers();
 
 #endif /* _TASK_H_ */
