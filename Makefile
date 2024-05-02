@@ -18,7 +18,7 @@ ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
 OBJS += $(patsubst src/%.c, $(OBJ)/%.o, $(C_SRCS))
 OBJS += $(filter-out build/kernel.asm.o, $(patsubst src/%.asm, $(OBJ)/%.asm.o, $(ASM_SRCS)))
 
-all: $(BINS)
+all: $(BINS) user_all
 	@rm -f $(BIN)/os.bin
 	dd if=$(BIN)/boot.bin >> $(BIN)/os.bin
 	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
@@ -27,6 +27,7 @@ all: $(BINS)
 	# Create a file
 	sudo mount -t vfat $(BIN)/os.bin /mnt/d
 	echo "Hello from FAT16!" | sudo tee /mnt/d/hello.txt
+	sudo cp ./user/blank.bin /mnt/d
 	sudo umount /mnt/d
 
 $(BIN)/kernel.bin: $(OBJS)
@@ -45,13 +46,19 @@ $(OBJ)/%.o: $(SRC)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+user_all:
+	@make -C user
+
+user_clean:
+	@make -C user clean
+
 gdb: all
 	gdb --command=debug.gdb
 
 qemu: all
 	qemu-system-i386 -hda bin/os.bin
 
-clean:
+clean: user_clean
 	@rm -rf $(OBJ) $(BIN)
 
 cc:

@@ -9,6 +9,8 @@
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
+#include "task/process.h"
+#include "task/task.h"
 #include "task/tss.h"
 
 static struct paging_4gb_chunck* kchunk = NULL;
@@ -63,7 +65,12 @@ void kernel_main() {
     enable_paging();
 
     /* Enable system interrupts*/
-    enable_interrupts();
+    // enable_interrupts();
+    struct process* process = NULL;
+    if (process_load("0:/blank.bin", &process) < 0)
+        panic("Failed to load blank.bin");
+
+    task_run_first_task();
 
     print("Hello, World!");
     /* Never return */
