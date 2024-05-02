@@ -122,3 +122,15 @@ int fopen(const char* filename, const char* mode_str) {
 
     return desc->index;
 }
+
+int fread(void* p, uint32_t size, uint32_t n, int fd) {
+    struct file_descriptor* desc;
+
+    if (size * n == 0 || fd < 1)
+        return -EINVAL;
+
+    if (!(desc = file_descriptor_get(fd)))
+        return -EINVAL;
+
+    return desc->fs->read(desc->disk, desc->private, size, n, (char*)p);
+}
