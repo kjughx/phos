@@ -46,7 +46,7 @@ int task_switch(struct task* task);
 int task_page();
 
 void task_run_first_task();
-void task_return(struct registers* regs);
+__attribute__((noreturn)) void task_return(struct registers* regs);
 void restore_gpr(struct registers* regs);
 void user_registers();
 

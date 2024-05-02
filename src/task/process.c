@@ -50,7 +50,7 @@ static int process_load_binary(const char* filename, struct process* process) {
     process->size = stat.filesize;
 
 out:
-    if (ret)
+    if (ret < 0)
         kfree(program_data);
 
     fclose(fd);
@@ -104,7 +104,12 @@ int process_load_for_slot(const char* filename, struct process** process, int pr
         ret = PTR_ERR(task);
         goto out;
     }
+
     _process->task = task;
+
+    if ((ret = process_map_memory(_process)) < 0)
+        goto out;
+
     *process = _process;
 
     /* Add process to the array */

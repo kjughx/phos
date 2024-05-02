@@ -38,7 +38,7 @@ task_return:
     mov fs, ax
     mov gs, ax
 
-    push dword [ebx+4]
+    push dword [ebp+4]
     call restore_gpr
 
     add esp, 4

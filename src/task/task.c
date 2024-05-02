@@ -28,7 +28,7 @@ int task_page() {
     return 0;
 }
 
-void task_run_first_task() {
+__attribute__((noreturn)) void task_run_first_task() {
     if (!current_task)
         panic("task_run_first_check: No current_task exists\n");
 
@@ -44,6 +44,7 @@ int task_init(struct task* task, struct process* process) {
 
     task->registers.ip = PHOS_PROGRAM_VIRTUAL_ADDRESS;
     task->registers.ss = USER_DATA_SEGMENT;
+    task->registers.cs = USER_CODE_SEGMENT;
     task->registers.esp = PHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
     task->process = process;
 
@@ -54,7 +55,7 @@ struct task* task_new(struct process* process) {
     int ret;
     struct task* task;
 
-    if ((task = kzalloc(sizeof(struct task))))
+    if (!(task = kzalloc(sizeof(struct task))))
         return ERROR(-ENOMEM);
 
     if ((ret = task_init(task, process)) < 0)
@@ -64,6 +65,7 @@ struct task* task_new(struct process* process) {
     if (!task_head) {
         task_head = task;
         task_tail = task;
+        current_task = task;
         return task;
     }
 
