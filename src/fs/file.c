@@ -1,10 +1,12 @@
 #include "file.h"
 #include "common.h"
 #include "config.h"
+#include "fat/fat16.h"
 #include "kernel.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "status.h"
+#include <string/string.h>
 
 struct filesystem* filesystems[PHOS_MAX_FILESYSTEMS];
 struct file_descriptor* file_descriptors[PHOS_MAX_FILE_DESCRIPTORS];
@@ -26,17 +28,7 @@ void fs_insert_fs(struct filesystem* filesystem) {
     *fs = filesystem;
 }
 
-static void fs_static_load() { /* fs_insert_fs(fat16_init()); */ }
-
-void fs_load() {
-    memset(filesystems, 0, sizeof(filesystems));
-    fs_static_load();
-}
-
-void fs_init() {
-    memset(file_descriptors, 0, sizeof(file_descriptors));
-    fs_load();
-}
+static void fs_static_load() { fs_insert_fs(fat16_init()); }
 
 static int file_descriptor_new(struct file_descriptor** desc) {
     for (int i = 0; i < PHOS_MAX_FILE_DESCRIPTORS; i++) {
@@ -66,6 +58,16 @@ struct filesystem* fs_resolve(struct disk* disk) {
     }
 
     return NULL;
+}
+
+void fs_load() {
+    memset(filesystems, 0, sizeof(filesystems));
+    fs_static_load();
+}
+
+void fs_init() {
+    memset(file_descriptors, 0, sizeof(file_descriptors));
+    fs_load();
 }
 
 int fopen(const char* filename, const char* mode) { return -EIO; }

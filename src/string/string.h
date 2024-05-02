@@ -8,6 +8,7 @@ void terminal_init();
 
 size_t strlen(const char* str);
 size_t strnlen(const char* str, size_t max);
+char* strcpy(char* dest, const char* src);
 bool is_digit(char c);
 int to_digit(char c);
 

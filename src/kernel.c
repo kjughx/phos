@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "disk/disk.h"
+#include "fs/file.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
 #include "memory/paging/paging.h"
@@ -12,6 +13,9 @@ void kernel_main() {
 
     /* Initialize the kernel heap */
     kheap_init();
+
+    /* Initialize the file systems */
+    fs_init();
 
     /* Search and initialize disks */
     disk_search_and_init();
