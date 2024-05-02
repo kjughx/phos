@@ -40,10 +40,3 @@ void kernel_main() {
     for (;;)
         ;
 }
-
-void panic(const char* message) {
-    print("Kernel panic: ");
-    print(message);
-    for (;;)
-        ;
-}
