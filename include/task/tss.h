@@ -5,7 +5,7 @@
 struct tss {
     uint32_t link;
     uint32_t esp0; /* Kernel stack pointer */
-    uint32_t ss0; /* Kernel stack segment */
+    uint32_t ss0;  /* Kernel stack segment */
 
     /* Unused by use but processor needs them */
     uint32_t esp1;

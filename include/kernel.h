@@ -9,7 +9,7 @@
 static inline void panic(const char* message) {
     print("Kernel panic: ");
     print(message);
-    asm volatile ("hlt");
+    asm volatile("hlt");
 }
 
 void kernel_main();

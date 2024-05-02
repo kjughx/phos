@@ -1,6 +1,6 @@
-#include "gdt.h"
-#include <common.h>
+#include "boot/gdt/gdt.h"
 #include "kernel.h"
+#include "common.h"
 
 static void encode_gdt_entry(uint8_t* target, struct gdt_structured src) {
     if ((src.limit > 65536) && (src.limit & 0xFFF) != 0xFFF)
@@ -22,7 +22,7 @@ static void encode_gdt_entry(uint8_t* target, struct gdt_structured src) {
     target[2] = src.base & 0xFF;
     target[3] = (src.base >> 8) & 0xFF;
     target[4] = (src.base >> 16) & 0xFF;
-    target[7] =(src.base >> 24) & 0xFF;
+    target[7] = (src.base >> 24) & 0xFF;
 
     /* Set the type */
     target[5] = src.type;

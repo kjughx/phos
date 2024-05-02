@@ -1,14 +1,14 @@
 #include "kernel.h"
 #include "boot/gdt/gdt.h"
+#include "common.h"
 #include "config.h"
 #include "disk/disk.h"
 #include "fs/file.h"
 #include "idt/idt.h"
 #include "memory/heap/kheap.h"
+#include "memory/memory.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
-#include <common.h>
-#include <memory/memory.h>
 #include "task/tss.h"
 
 static struct paging_4gb_chunck* kchunk = NULL;

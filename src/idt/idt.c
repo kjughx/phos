@@ -1,7 +1,7 @@
 #include "common.h"
 
 #include "config.h"
-#include "idt.h"
+#include "idt/idt.h"
 #include "io/io.h"
 #include "memory/memory.h"
 #include "string/string.h"

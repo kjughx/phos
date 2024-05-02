@@ -1,7 +1,7 @@
-#include "file.h"
+#include "fs/file.h"
 #include "common.h"
 #include "config.h"
-#include "fat/fat16.h"
+#include "fs/fat/fat16.h"
 #include "kernel.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
@@ -45,10 +45,10 @@ static int file_descriptor_new(struct file_descriptor** desc) {
     return -ENOMEM;
 }
 
- static void file_descriptor_free(struct file_descriptor* desc) {
-     file_descriptors[desc->index - 1] = 0x00;
-     kfree(desc);
- }
+static void file_descriptor_free(struct file_descriptor* desc) {
+    file_descriptors[desc->index - 1] = 0x00;
+    kfree(desc);
+}
 
 static struct file_descriptor* file_descriptor_get(int fd) {
     if (fd <= 0 || fd >= PHOS_MAX_FILE_DESCRIPTORS)

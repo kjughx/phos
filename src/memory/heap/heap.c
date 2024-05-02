@@ -1,4 +1,4 @@
-#include "heap.h"
+#include "memory/heap/heap.h"
 #include "common.h"
 #include "config.h"
 #include "memory/memory.h"

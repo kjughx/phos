@@ -1,4 +1,4 @@
-#include "paging.h"
+#include "memory/paging/paging.h"
 #include "common.h"
 #include "kernel.h"
 #include "memory/heap/kheap.h"
