@@ -152,3 +152,11 @@ int fread(void* p, uint32_t size, uint32_t n, int fd) {
 
     return desc->fs->read(desc->disk, desc->private, size, n, (char*)p);
 }
+
+int fclose(int fd) {
+    struct file_descriptor* desc;
+    if (!(desc = file_descriptor_get(fd)))
+        return -EINVAL;
+
+    return desc->fs->close(desc->private);
+}
