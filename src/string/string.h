@@ -13,6 +13,7 @@ int to_digit(char c);
 size_t strlen(const char* str);
 size_t strnlen(const char* str, size_t max);
 char* strcpy(char* dest, const char* src);
+char* strcpy_strip(char* dest, const char* src);
 int strncmp(const char* s1, const char* s2, size_t n);
 int istrncmp(const char* s1, const char* s2, size_t n);
 int strnlen_terminator(const char* str, int max, char terminator);

@@ -20,3 +20,13 @@ int memcmp(void* p1, void* p2, size_t count) {
 
     return 0;
 }
+
+void* memcpy(void* dst, void* src, size_t size) {
+    char* d = dst;
+    char* s = src;
+
+    while (size--)
+        *(d++) = *(s++);
+
+    return dst;
+}

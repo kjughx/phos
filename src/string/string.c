@@ -67,6 +67,17 @@ int strncmp(const char* s1, const char* s2, size_t n) {
     return 0;
 }
 
+char* strcpy_strip(char* dest, const char* src) {
+    char* res = dest;
+
+    while (*src && *src != 0x20)
+        *(dest++) = *(src++);
+
+    *dest = 0;
+
+    return res;
+}
+
 int strnlen_terminator(const char* str, int max, char terminator) {
     for (int i = 0; i < max; i++) {
         if (str[i] == '\0' || str[i] == terminator)

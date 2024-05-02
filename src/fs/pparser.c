@@ -35,7 +35,8 @@ static const char* pparser_get_path_part(const char** path) {
     int i = 0;
 
     while (**path && **path != '/') {
-        path_part[i++] = **(path++);
+        path_part[i++] = **path;
+        (*path)++;
     }
 
     if (**path == '/') {

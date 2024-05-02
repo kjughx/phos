@@ -76,7 +76,7 @@ FILE_MODE file_get_mode_by_string(const char* m) {
     FILE_MODE mode = FILE_MODE_INVALID;
 
     if (strncmp(m, "r", 1) == 0)
-        mode  = FILE_MODE_READ;
+        mode = FILE_MODE_READ;
     else if (strncmp(m, "w", 1) == 0)
         mode = FILE_MODE_WRITE;
     else if (strncmp(m, "a", 1) == 0)
@@ -90,7 +90,7 @@ int fopen(const char* filename, const char* mode_str) {
     struct path_root* root = NULL;
     struct file_descriptor* desc = NULL;
     FILE_MODE mode = FILE_MODE_INVALID;
-    void* private  = NULL;
+    void* private = NULL;
 
     if (!(root = pparser_parse(filename, NULL)))
         return 0;
@@ -102,7 +102,7 @@ int fopen(const char* filename, const char* mode_str) {
     if (!(disk = disk_get(root->drive_no)))
         return 0;
 
-    if(!disk->filesystem)
+    if (!disk->filesystem)
         return 0;
 
     mode = file_get_mode_by_string(mode_str);
