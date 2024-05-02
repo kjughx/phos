@@ -91,6 +91,7 @@ FILE_MODE file_get_mode_by_string(const char* m) {
 }
 
 int fopen(const char* filename, const char* mode_str) {
+    int ret = 0;
     struct disk* disk = NULL;
     struct path_root* root = NULL;
     struct file_descriptor* desc = NULL;
@@ -98,28 +99,28 @@ int fopen(const char* filename, const char* mode_str) {
     void* private = NULL;
 
     if (!(root = pparser_parse(filename, NULL)))
-        return 0;
+        return -EINVAL;
 
     /* Can't open root path: 0:/ */
     if (!root->first)
-        return 0;
+        return -EINVAL;
 
     if (!(disk = disk_get(root->drive_no)))
-        return 0;
+        return -EIO;
 
     if (!disk->filesystem)
-        return 0;
+        return -EIO;
 
     mode = file_get_mode_by_string(mode_str);
     if (mode == FILE_MODE_INVALID)
-        return 0;
+        return -EINVAL;
 
     private = disk->filesystem->open(disk, root->first, mode);
     if (ISERR(private))
-        return 0;
+        return PTR_ERR(private);
 
-    if (file_descriptor_new(&desc) < 0)
-        return 0;
+    if ((ret = file_descriptor_new(&desc)) < 0)
+        return ret;
 
     desc->fs = disk->filesystem;
     desc->private = private;
