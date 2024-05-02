@@ -8,6 +8,22 @@ uint16_t terminal_col = 0;
 
 uint16_t terminal_make_char(char c, char color) { return (color << 8 | c); }
 
+bool is_digit(char c) { return (c >= 48 && c <= 57); }
+
+int to_lower(unsigned char c) {
+    if (c >= 65 && c <= 90)
+        return c + 32;
+
+    return c;
+}
+
+int to_digit(char c) {
+    if (!is_digit(c))
+        return c;
+
+    return c - 48;
+}
+
 size_t strlen(const char* str) {
     size_t len = 0;
     while (str[len]) {
@@ -37,13 +53,41 @@ char* strcpy(char* dest, const char* src) {
     return res;
 }
 
-bool is_digit(char c) { return (c >= 48 && c <= 57); }
+int strncmp(const char* s1, const char* s2, size_t n) {
+    unsigned char u1, u2;
+    while (n-- > 0) {
+        u1 = (unsigned char)*s1++;
+        u2 = (unsigned char)*s2++;
+        if (u1 != u2)
+            return u1 - u2;
+        if (u1 == '\0')
+            break;
+    }
 
-int to_digit(char c) {
-    if (!is_digit(c))
-        return c;
+    return 0;
+}
 
-    return c - 48;
+int strnlen_terminator(const char* str, int max, char terminator) {
+    for (int i = 0; i < max; i++) {
+        if (str[i] == '\0' || str[i] == terminator)
+            return i;
+    }
+
+    return max;
+}
+
+int istrncmp(const char* s1, const char* s2, size_t n) {
+    unsigned char u1, u2;
+    while (n-- > 0) {
+        u1 = (unsigned char)*s1++;
+        u2 = (unsigned char)*s2++;
+        if (to_lower(u1) != to_lower(u2))
+            return u1 - u2;
+        if (u1 == '\0')
+            break;
+    }
+
+    return 0;
 }
 
 void terminal_putchar(int x, int y, char c, char color) {

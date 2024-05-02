@@ -6,6 +6,8 @@
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "status.h"
+#include <disk/disk.h>
+#include <fs/pparser.h>
 #include <string/string.h>
 
 struct filesystem* filesystems[PHOS_MAX_FILESYSTEMS];
@@ -70,4 +72,53 @@ void fs_init() {
     fs_load();
 }
 
-int fopen(const char* filename, const char* mode) { return -EIO; }
+FILE_MODE file_get_mode_by_string(const char* m) {
+    FILE_MODE mode = FILE_MODE_INVALID;
+
+    if (strncmp(m, "r", 1) == 0)
+        mode  = FILE_MODE_READ;
+    else if (strncmp(m, "w", 1) == 0)
+        mode = FILE_MODE_WRITE;
+    else if (strncmp(m, "a", 1) == 0)
+        mode = FILE_MODE_APPEND;
+
+    return mode;
+}
+
+int fopen(const char* filename, const char* mode_str) {
+    struct disk* disk = NULL;
+    struct path_root* root = NULL;
+    struct file_descriptor* desc = NULL;
+    FILE_MODE mode = FILE_MODE_INVALID;
+    void* private  = NULL;
+
+    if (!(root = pparser_parse(filename, NULL)))
+        return 0;
+
+    /* Can't open root path: 0:/ */
+    if (!root->first)
+        return 0;
+
+    if (!(disk = disk_get(root->drive_no)))
+        return 0;
+
+    if(!disk->filesystem)
+        return 0;
+
+    mode = file_get_mode_by_string(mode_str);
+    if (mode == FILE_MODE_INVALID)
+        return 0;
+
+    private = disk->filesystem->open(disk, root->first, mode);
+    if (ISERR(private))
+        return 0;
+
+    if (file_descriptor_new(&desc) < 0)
+        return 0;
+
+    desc->fs = disk->filesystem;
+    desc->private = private;
+    desc->disk = disk;
+
+    return desc->index;
+}

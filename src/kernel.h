@@ -8,4 +8,8 @@ void panic(const char* message);
 
 void kernel_main();
 
+#define ERROR(p) ((void*)p)
+#define ISERR(p) (((int)p) < 0)
+#define PTR_ERR(p) ((int)p)
+
 #endif /* _KERNEL_H_  */
