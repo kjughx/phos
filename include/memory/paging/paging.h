@@ -26,5 +26,6 @@ pte_t* paging_4gb_chunk_get_directory(struct paging_4gb_chunck* chunk);
 void paging_switch(pte_t* directory);
 extern void enable_paging();
 int paging_set(pte_t* directory, void* vaddr, pte_t val);
+void paging_free_4gb(struct paging_4gb_chunck* chunk);
 
 #endif /* _PAGING_H_ */

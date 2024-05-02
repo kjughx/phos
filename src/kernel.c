@@ -16,12 +16,12 @@ static struct tss tss;
 
 struct gdt gdt_real[PHOS_TOTAL_GDT_SEGMENTS];
 struct gdt_structured gdt_structured[PHOS_TOTAL_GDT_SEGMENTS] = {
-    {.base = 0x00, .limit = 0x00, .type = 0x00},       /* NULL Segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A}, /* Kernel code segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92}, /* Kernel data segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xf8}, /* User code segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xf2}, /* User data segment */
-    {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9 } /* TSS Segment  */
+    {.base = 0x00, .limit = 0x00, .type = 0x00},                 /* NULL Segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A},           /* Kernel code segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92},           /* Kernel data segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xf8},           /* User code segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xf2},           /* User data segment */
+    {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9} /* TSS Segment  */
 };
 
 void kernel_main() {
