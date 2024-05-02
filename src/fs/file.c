@@ -129,7 +129,6 @@ int fseek(int fd, int offset, FILE_SEEK_MODE whence) {
     if ((!(desc = file_descriptor_get(fd))))
         return -EINVAL;
 
-
     return desc->fs->seek(desc->private, offset, whence);
 }
 
