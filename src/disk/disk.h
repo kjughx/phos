@@ -10,8 +10,10 @@ typedef enum disk_type {
 struct disk {
     disk_type_e type;
     int sector_size;
+    int id; /* Id of disk */
 
     struct filesystem* filesystem;
+    void* fs_private; /* Private data of filesystem */
 };
 
 void disk_search_and_init();

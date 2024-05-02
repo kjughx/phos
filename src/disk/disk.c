@@ -36,6 +36,7 @@ void disk_search_and_init() {
     memset(&disk, 0, sizeof(struct disk));
     disk.type = disk_type_real;
     disk.sector_size = PHOS_SECTOR_SIZE;
+    disk.id = 0; /* TODO: Make this dynamic */
     disk.filesystem = fs_resolve(&disk);
 }
 
