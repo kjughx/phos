@@ -123,6 +123,15 @@ int fopen(const char* filename, const char* mode_str) {
     return desc->index;
 }
 
+int fstat(int fd, struct file_stat* stat) {
+    struct file_descriptor* desc;
+
+    if (!(desc = file_descriptor_get(fd)))
+        return -EINVAL;
+
+    return desc->fs->stat(desc->disk, desc->private, stat);
+}
+
 int fseek(int fd, int offset, FILE_SEEK_MODE whence) {
     struct file_descriptor* desc;
 
