@@ -32,7 +32,7 @@ void no_interrupt_handler() { ACK_INTR(); }
 
 void isr80h_register_command(int command_id, ISR80H_COMMAND command) {
     /* Invalid command */
-    if (command_id <= 0 || command_id >= PHOS_MAX_ISR80H_COMMANDS)
+    if (command_id < 0 || command_id >= PHOS_MAX_ISR80H_COMMANDS)
         panic("Command ID is out of bounds");
 
     if (isr80h_commands[command_id])
@@ -43,7 +43,7 @@ void isr80h_register_command(int command_id, ISR80H_COMMAND command) {
 
 void* isr80h_handle_command(int command, struct interrupt_frame* frame) {
     /* Invalid command */
-    if (command <= 0 || command >= PHOS_MAX_ISR80H_COMMANDS)
+    if (command < 0 || command >= PHOS_MAX_ISR80H_COMMANDS)
         return NULL;
 
     ISR80H_COMMAND func = isr80h_commands[command];

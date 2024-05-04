@@ -12,6 +12,7 @@
 #include "task/process.h"
 #include "task/task.h"
 #include "task/tss.h"
+#include "isr80h/isr80h.h"
 
 static struct paging_4gb_chunck* kchunk = NULL;
 static struct tss tss;
@@ -68,6 +69,9 @@ void kernel_main() {
 
     /* Enable paging */
     enable_paging();
+
+    /* Register syscalls */
+    isr80h_register_commands();
 
     /* Enable system interrupts*/
     enable_interrupts();
