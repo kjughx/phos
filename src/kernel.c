@@ -55,7 +55,7 @@ void kernel_main() {
 
     /* Setup the TSS */
     memset(&tss, 0, sizeof(tss));
-    tss.esp = 0x600000; /* Kernel stack */
+    tss.esp0 = 0x600000;
     tss.ss0 = KERNEL_DATA_SELECTOR;
 
     /* Load the TSS */
