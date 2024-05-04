@@ -3,8 +3,15 @@
 #include "config.h"
 #include "idt/idt.h"
 #include "io/io.h"
+#include "kernel.h"
 #include "memory/memory.h"
 #include "string/string.h"
+#include "task//task.h"
+
+#define ACK_INTR()                                                                                 \
+    do {                                                                                           \
+        outb(0x20, 0x20);                                                                           \
+    } while (0);
 
 struct idt_desc idt_descriptors[PHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
@@ -15,10 +22,22 @@ extern void no_interrupt();
 
 void int21h_handler() {
     print("Keyboard pressed!\n");
-    outb(0x20, 0x20);
+    ACK_INTR();
 }
 
-void no_interrupt_handler() { outb(0x20, 0x20); }
+void no_interrupt_handler() { ACK_INTR(); }
+
+void* isr80h_handle_command(int command, struct interrupt_frame* frame) { return NULL; }
+
+void* isr80h_handler(int command, struct interrupt_frame* frame) {
+    void* ret = NULL;
+    kernel_page();
+    task_current_save_state(frame);
+    ret = isr80h_handle_command(command, frame);
+    task_page();
+    ACK_INTR();
+    return ret;
+}
 
 void idt_set(int i, void* addr) {
 

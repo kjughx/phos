@@ -26,6 +26,11 @@ struct gdt_structured gdt_structured[PHOS_TOTAL_GDT_SEGMENTS] = {
     {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9} /* TSS Segment  */
 };
 
+void kernel_page() {
+    kernel_registers();
+    paging_switch(kchunk);
+}
+
 void kernel_main() {
     terminal_init();
 

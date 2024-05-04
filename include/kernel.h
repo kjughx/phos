@@ -12,7 +12,9 @@ static inline void panic(const char* message) {
     asm volatile("hlt");
 }
 
+void kernel_registers();
 void kernel_main();
+void kernel_page();
 
 #define ERROR(p) ((void*)p)
 #define ISERR(p) (((int)p) < 0)
