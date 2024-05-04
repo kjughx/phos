@@ -52,7 +52,7 @@ int task_page() {
     return 0;
 }
 
-__attribute__((noreturn)) void task_run_first_task() {
+void task_run_first_task() {
     if (!current_task)
         panic("task_run_first_check: No current_task exists\n");
 
@@ -94,6 +94,7 @@ struct task* task_new(struct process* process) {
     }
 
     task_tail->next = task;
+    task->prev = task_tail;
     task_tail = task;
 
     return task;

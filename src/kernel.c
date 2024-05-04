@@ -74,7 +74,12 @@ void kernel_main() {
     isr80h_register_commands();
 
     /* Enable system interrupts*/
-    enable_interrupts();
+    // enable_interrupts();
+    struct process* process = NULL;
+    if (process_load("0:/blank.bin", &process) < 0)
+        panic("Failed to load blank.bin");
+
+    task_run_first_task();
 
     print("Hello, World!");
     /* Never return */

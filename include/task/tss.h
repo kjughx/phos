@@ -6,8 +6,6 @@ struct tss {
     uint32_t link;
     uint32_t esp0; /* Kernel stack pointer */
     uint32_t ss0;  /* Kernel stack segment */
-
-    /* Unused by use but processor needs them */
     uint32_t esp1;
     uint32_t esp2;
     uint32_t ss2;
@@ -28,7 +26,7 @@ struct tss {
     uint32_t ds;
     uint32_t fs;
     uint32_t gs;
-    uint32_t ltr;
+    uint32_t ldtr;
     uint32_t iopb;
 } __attribute((packed));
 

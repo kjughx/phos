@@ -13,10 +13,10 @@ static void encode_gdt_entry(uint8_t* target, struct gdt_structured src) {
         target[6] = 0xC0;
     }
 
-    /*Encode the limit */
+    /* Encode the limit */
     target[0] = src.limit & 0xFF;
     target[1] = (src.limit >> 8) & 0xFF;
-    target[6] |= (src.limit >> 16) & 0xFF;
+    target[6] |= (src.limit >> 16) & 0x0F;
 
     /* Encode the base */
     target[2] = src.base & 0xFF;

@@ -1,26 +1,28 @@
 [BITS 32]
 section .asm
 
+global restore_general_purpose_registers
 global task_return
+global user_registers
+
+; void task_return(struct registers* regs);
 task_return:
     mov ebp, esp
-    ; PUSH DATA SEGMENT (SS WILL BE FINE)
-    ; PUSH STACK_ADDRESS
+    ; PUSH THE DATA SEGMENT (SS WILL BE FINE)
+    ; PUSH THE STACK ADDRESS
     ; PUSH THE FLAGS
     ; PUSH THE CODE SEGMENT
     ; PUSH IP
 
-    ; Access the structure passed to us
+    ; Let's access the structure passed to us
     mov ebx, [ebp+4]
-
-    ; Push the data/stack selector
+    ; push the data/stack selector
     push dword [ebx+44]
     ; Push the stack pointer
-
     push dword [ebx+40]
-    ;Push the flags
-    pushf
 
+    ; Push the flags
+    pushf
     pop eax
     or eax, 0x200
     push eax
@@ -31,7 +33,7 @@ task_return:
     ; Push the IP to execute
     push dword [ebx+28]
 
-    ; Segment registers
+    ; Setup some segment registers
     mov ax, [ebx+44]
     mov ds, ax
     mov es, ax
@@ -39,15 +41,14 @@ task_return:
     mov gs, ax
 
     push dword [ebp+4]
-    call restore_gpr
-
+    call restore_general_purpose_registers
     add esp, 4
 
-    ; Let's leave kernelland and start executing in userland
+    ; Let's leave kernel land and execute in user land!
     iretd
 
-global restore_gpr
-restore_gpr: ; Restore the general purpose registers
+; void restore_general_purpose_registers(struct registers* regs);
+restore_general_purpose_registers:
     push ebp
     mov ebp, esp
     mov ebx, [ebp+8]
@@ -61,12 +62,11 @@ restore_gpr: ; Restore the general purpose registers
     pop ebp
     ret
 
-global user_registers
+; void user_registers()
 user_registers:
     mov ax, 0x23
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-
     ret
