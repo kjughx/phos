@@ -31,4 +31,6 @@
 #define USER_DATA_SEGMENT 0x23
 #define USER_CODE_SEGMENT 0x1B
 
+#define PHOS_MAX_ISR80H_COMMANDS 1024
+
 #endif /* _CONFIG_H */

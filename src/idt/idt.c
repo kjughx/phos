@@ -6,7 +6,7 @@
 #include "kernel.h"
 #include "memory/memory.h"
 #include "string/string.h"
-#include "task//task.h"
+#include "task/task.h"
 
 #define ACK_INTR()                                                                                 \
     do {                                                                                           \
@@ -19,6 +19,9 @@ struct idtr_desc idtr_descriptor;
 extern void int21h();
 extern void idt_load(struct idtr_desc* p);
 extern void no_interrupt();
+extern void isr80h_wrapper();
+
+static ISR80H_COMMAND isr80h_commands[PHOS_MAX_ISR80H_COMMANDS];
 
 void int21h_handler() {
     print("Keyboard pressed!\n");
@@ -27,7 +30,28 @@ void int21h_handler() {
 
 void no_interrupt_handler() { ACK_INTR(); }
 
-void* isr80h_handle_command(int command, struct interrupt_frame* frame) { return NULL; }
+void isr80h_register_command(int command_id, ISR80H_COMMAND command) {
+    /* Invalid command */
+    if (command_id <= 0 || command_id >= PHOS_MAX_ISR80H_COMMANDS)
+        panic("Command ID is out of bounds");
+
+    if (isr80h_commands[command_id])
+        panic("Command already in use");
+
+    isr80h_commands[command_id] = command;
+}
+
+void* isr80h_handle_command(int command, struct interrupt_frame* frame) {
+    /* Invalid command */
+    if (command <= 0 || command >= PHOS_MAX_ISR80H_COMMANDS)
+        return NULL;
+
+    ISR80H_COMMAND func = isr80h_commands[command];
+    if (!func)
+        return NULL;
+
+    return func(frame);
+}
 
 void* isr80h_handler(int command, struct interrupt_frame* frame) {
     void* ret = NULL;
@@ -59,6 +83,7 @@ void idt_init() {
     }
 
     idt_set(0x21, int21h);
+    idt_set(0x80, isr80h_wrapper);
 
     idt_load(&idtr_descriptor);
 }
