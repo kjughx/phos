@@ -6,6 +6,7 @@
 #include "fs/file.h"
 #include "idt/idt.h"
 #include "isr80h/isr80h.h"
+#include "keyboard/keyboard.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
@@ -72,6 +73,9 @@ void kernel_main() {
 
     /* Register syscalls */
     isr80h_register_commands();
+
+    /* Initialize all keyboards */
+    keyboard_init();
 
     print("Hello, World! - Kernel\n");
 

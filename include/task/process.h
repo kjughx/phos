@@ -25,8 +25,15 @@ struct process {
 
     /* Physical pointer to process stack */
     void* stack;
+
+    struct keyboard_buffer {
+        char buffer[PHOS_KEYBOARD_BUFFER_SIZE];
+        int reader;
+        int writer;
+    } keyboard;
 };
 
+struct process* process_current();
 int process_load(const char* filename, struct process** process);
 int process_load_for_slot(const char* filename, struct process** process, int process_slot);
 
