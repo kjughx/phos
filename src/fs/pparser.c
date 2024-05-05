@@ -66,19 +66,6 @@ static struct path_part* pparser_parse_path_part(struct path_part* prev, const c
     return part;
 }
 
-void pparser_free(struct path_root* root) {
-    struct path_part* part = root->first;
-
-    while (part) {
-        struct path_part* next = part->next;
-        kfree((void*)part->part);
-        kfree(part);
-        part = next;
-    }
-
-    kfree(root);
-}
-
 struct path_root* pparser_parse(const char* path, const char* cwd) {
     const char* tmp = path;
     int drive_no;
@@ -106,4 +93,17 @@ struct path_root* pparser_parse(const char* path, const char* cwd) {
 
 out:
     return root;
+}
+
+void pparser_free(struct path_root* root) {
+    struct path_part* part = root->first;
+
+    while (part) {
+        struct path_part* next = part->next;
+        kfree((void*)part->part);
+        kfree(part);
+        part = next;
+    }
+
+    kfree(root);
 }

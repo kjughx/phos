@@ -5,7 +5,23 @@
 #include "status.h"
 #include <fs/file.h>
 
-struct disk disk;
+/* Our one and only disk */
+struct disk disk0;
+
+void disk_search_and_init() {
+    memset(&disk0, 0, sizeof(struct disk));
+    disk0.type = disk_type_real;
+    disk0.sector_size = PHOS_SECTOR_SIZE;
+    disk0.id = 0; /* TODO: Make this dynamic */
+    disk0.filesystem = fs_resolve(&disk0);
+}
+
+struct disk* disk_get(int index) {
+    if (index != 0)
+        return NULL;
+
+    return &disk0;
+}
 
 static int disk_read_sector(int lba, int total, void* buf) {
     outb(0x1F6, (lba >> 24) | 0xE0);
@@ -32,23 +48,8 @@ static int disk_read_sector(int lba, int total, void* buf) {
     return 0;
 }
 
-void disk_search_and_init() {
-    memset(&disk, 0, sizeof(struct disk));
-    disk.type = disk_type_real;
-    disk.sector_size = PHOS_SECTOR_SIZE;
-    disk.id = 0; /* TODO: Make this dynamic */
-    disk.filesystem = fs_resolve(&disk);
-}
-
-struct disk* disk_get(int index) {
-    if (index != 0)
-        return NULL;
-
-    return &disk;
-}
-
-int disk_read_block(struct disk* idisk, unsigned int lba, int total, void* buf) {
-    if (idisk != &disk)
+int disk_read_block(struct disk* disk, unsigned int lba, int total, void* buf) {
+    if (disk != &disk0)
         return -EIO;
 
     return disk_read_sector(lba, total, buf);

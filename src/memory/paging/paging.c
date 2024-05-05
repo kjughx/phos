@@ -8,9 +8,9 @@ static pte_t* current_directory = 0;
 
 extern void paging_load_directory(pte_t* directory);
 
-struct paging_4gb_chunck* paging_new_4gb(uint8_t flags) {
+struct paging_chunk* paging_new_chunk(uint8_t flags) {
     pte_t* directory;
-    struct paging_4gb_chunck* chunk;
+    struct paging_chunk* chunk;
     int offset = 0;
 
     if (!(directory = kzalloc(sizeof(pte_t) * PAGING_TOTAL_ENTRIES_PER_TABLE)))
@@ -29,7 +29,7 @@ struct paging_4gb_chunck* paging_new_4gb(uint8_t flags) {
         directory[i] = (pte_t)entry | flags | PAGING_IS_WRITABLE;
     }
 
-    if (!(chunk = kzalloc(sizeof(struct paging_4gb_chunck))))
+    if (!(chunk = kzalloc(sizeof(struct paging_chunk))))
         panic("Could not allocate paging chunk");
 
     chunk->directory_entry = directory;
@@ -37,7 +37,7 @@ struct paging_4gb_chunck* paging_new_4gb(uint8_t flags) {
     return chunk;
 }
 
-void paging_free_4gb(struct paging_4gb_chunck* chunk) {
+void paging_free_chunk(struct paging_chunk* chunk) {
     for (int i = 0; i < PAGING_TOTAL_ENTRIES_PER_TABLE; i++) {
         uint32_t entry = chunk->directory_entry[i];
         uint32_t* table = (uint32_t*)(entry & 0xfffff000);
@@ -47,7 +47,7 @@ void paging_free_4gb(struct paging_4gb_chunck* chunk) {
     kfree(chunk);
 }
 
-void paging_switch(struct paging_4gb_chunck* directory) {
+void paging_switch(struct paging_chunk* directory) {
     paging_load_directory(directory->directory_entry);
     current_directory = directory->directory_entry;
 }
@@ -83,15 +83,15 @@ int paging_set(pte_t* directory, void* vaddr, pte_t val) {
     return 0;
 }
 
-int paging_map(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, int flags) {
+int paging_map(struct paging_chunk* directory, void* vaddr, void* paddr, uint8_t flags) {
     if (!PAGING_ALIGNED(vaddr) || !PAGING_ALIGNED(paddr))
         return -EINVAL;
 
     return paging_set(directory->directory_entry, vaddr, (pte_t)paddr | flags);
 }
 
-int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count,
-                     int flags) {
+int paging_map_range(struct paging_chunk* directory, void* vaddr, void* paddr, uint32_t count,
+                     uint8_t flags) {
     for (uint32_t i = 0; i < count; i++) {
         if (paging_map(directory, vaddr, paddr, flags) < 0)
             break;
@@ -103,8 +103,8 @@ int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* pad
     return 0;
 }
 
-int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, void* pend,
-                  int flags) {
+int paging_map_to(struct paging_chunk* directory, void* vaddr, void* paddr, void* pend,
+                  uint8_t flags) {
     if (!PAGING_ALIGNED(vaddr))
         return -EINVAL;
     if (!PAGING_ALIGNED(paddr))

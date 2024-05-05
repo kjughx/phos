@@ -79,7 +79,7 @@ int process_map_memory(struct process* process) {
                          PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
 }
 
-int process_load_for_slot(const char* filename, struct process** process, int process_slot) {
+static int process_load_for_slot(const char* filename, struct process** process, int process_slot) {
     int ret = 0;
     struct task* task = NULL;
     struct process* _process = NULL;
@@ -134,7 +134,7 @@ out:
     return ret;
 }
 
-int process_get_free_slot() {
+static int process_get_free_slot() {
     for (int i = 0; i < PHOS_MAX_PROCESSES; i++) {
         if (processes[i] == NULL)
             return i;

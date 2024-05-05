@@ -44,4 +44,4 @@ out:
     return ret;
 }
 
-void diskstreamer_close(struct disk_stream* stream) { kfree(stream); }
+void diskstreamer_free(struct disk_stream* stream) { kfree(stream); }

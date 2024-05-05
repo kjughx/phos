@@ -102,7 +102,7 @@ void task_run_first_task() {
 int task_init(struct task* task, struct process* process) {
     memset(task, 0, sizeof(struct task));
 
-    if (!(task->page_directory = paging_new_4gb(PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL)))
+    if (!(task->page_directory = paging_new_chunk(PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL)))
         return -EIO;
 
     task->registers.ip = PHOS_PROGRAM_VIRTUAL_ADDRESS;
@@ -164,7 +164,7 @@ void task_free(struct task* task) {
     if (!task)
         return;
 
-    paging_free_4gb(task->page_directory);
+    paging_free_chunk(task->page_directory);
     task_list_remove(task);
     kfree(task);
 }

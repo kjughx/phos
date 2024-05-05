@@ -5,8 +5,6 @@
 #include "status.h"
 #include "string/string.h"
 
-#define HEAP_TYPE(x) ((x) & 0x0f)
-
 static int heap_validate_table(void* p, void* end, struct heap_table* table) {
     size_t table_size = (size_t)(end - p);
     size_t total_blocks = table_size / PHOS_HEAP_BLOCK_SIZE;

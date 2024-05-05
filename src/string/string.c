@@ -10,9 +10,16 @@ uint16_t terminal_make_char(char c, char color) { return (color << 8 | c); }
 
 bool is_digit(char c) { return (c >= 48 && c <= 57); }
 
-int to_lower(unsigned char c) {
+char to_lower(unsigned char c) {
     if (c >= 65 && c <= 90)
         return c + 32;
+
+    return c;
+}
+
+char to_upper(unsigned char c) {
+    if (c >= 97 && c <= 122)
+        return c - 32;
 
     return c;
 }

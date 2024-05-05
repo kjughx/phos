@@ -3,29 +3,28 @@
 
 #include "common.h"
 #include "config.h"
-#include "task/task.h"
 
+struct task;
+
+/* @brief Represents a process
+ *
+ * @member id: The process id
+ * @member filename: The path to the executable
+ * @member task: The main process task
+ * @member allocations: The memory alloc'd by the process
+ * @member p:  Physical pointer to the process memory
+ * @member size: Size of data pointed to by @p
+ * @member stack: Physical pointer to process stack
+ * @member keyboard: The keyboard buffer for the process
+*/
 struct process {
-    /* The process id */
     uint16_t id;
-
     char filename[PHOS_MAX_PATH];
-
-    /* The main process task */
     struct task* task;
-
-    /* The memory malloc'd by the process */
     void* allocations[PHOS_MAX_PROGRAM_ALLOCATIONS];
-
-    /* Physical pointer to process memory */
     void* p;
-
-    /* Size of data pointed to by p */
     uint32_t size;
-
-    /* Physical pointer to process stack */
     void* stack;
-
     struct keyboard_buffer {
         char buffer[PHOS_KEYBOARD_BUFFER_SIZE];
         int reader;
@@ -33,8 +32,10 @@ struct process {
     } keyboard;
 };
 
+/* @brief Get the current process */
 struct process* process_current();
+
+/* @brief Load a new @process with the contens of @filename */
 int process_load(const char* filename, struct process** process);
-int process_load_for_slot(const char* filename, struct process** process, int process_slot);
 
 #endif /* _PROCESS_H_ */

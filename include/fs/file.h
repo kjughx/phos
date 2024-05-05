@@ -1,7 +1,6 @@
 #ifndef _FILE_H_
 #define _FILE_H_
 
-#include "fs/pparser.h"
 #include <common.h>
 
 typedef unsigned int FILE_SEEK_MODE;
@@ -43,6 +42,7 @@ struct file_stat {
 };
 
 struct disk;
+struct path_part;
 typedef int (*FS_RESOLVE_FUNCTION)(struct disk* disk);
 typedef void* (*FS_OPEN_FUNCTION)(struct disk* disk, struct path_part* path, FILE_MODE mode);
 typedef int (*FS_READ_FUNCTION)(struct disk* disk, void* private, uint32_t size, uint32_t nmemb,
@@ -63,13 +63,27 @@ struct filesystem {
     char name[20];
 };
 
+/* @brief Initialize the filesystems */
 void fs_init();
-int fopen(const char* filename, const char* mode);
-int fstat(int fd, struct file_stat* stat);
-int fseek(int fd, int offset, FILE_SEEK_MODE whence);
-int fread(void* p, uint32_t size, uint32_t n, int fd);
-int fclose(int fd);
-void fs_insert_fs(struct filesystem* fs);
+
+/* @brief Resolve the filesystem for @disk */
 struct filesystem* fs_resolve(struct disk* disk);
+
+/* @brief Open the file @filename in @mode */
+int fopen(const char* filename, const char* mode);
+
+/* @brief Return the file status */
+int fstat(int fd, struct file_stat* stat);
+
+/* @brief Seek the file with file descriptor @fd to @offset */
+int fseek(int fd, int offset, FILE_SEEK_MODE whence);
+
+/* @brief Read @n blocks of @size from @fd into @p */
+int fread(void* p, uint32_t size, uint32_t n, int fd);
+/* @brief Close the file with file descriptor @fd */
+int fclose(int fd);
+
+/* @brief Insert the filesystem @fs */
+void fs_insert_fs(struct filesystem* fs);
 
 #endif /* _FILE_H_ */

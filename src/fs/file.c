@@ -22,14 +22,6 @@ static struct filesystem** fs_get_free_filesystem() {
     return NULL;
 }
 
-void fs_insert_fs(struct filesystem* filesystem) {
-    struct filesystem** fs;
-    if (!(fs = fs_get_free_filesystem()))
-        panic("Could not insert filesystem");
-
-    *fs = filesystem;
-}
-
 static void fs_static_load() { fs_insert_fs(fat16_init()); }
 
 static int file_descriptor_new(struct file_descriptor** desc) {
@@ -55,6 +47,14 @@ static struct file_descriptor* file_descriptor_get(int fd) {
         return NULL;
 
     return file_descriptors[fd - 1];
+}
+
+void fs_insert_fs(struct filesystem* filesystem) {
+    struct filesystem** fs;
+    if (!(fs = fs_get_free_filesystem()))
+        panic("Could not insert filesystem");
+
+    *fs = filesystem;
 }
 
 struct filesystem* fs_resolve(struct disk* disk) {

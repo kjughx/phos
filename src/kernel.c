@@ -15,7 +15,7 @@
 #include "task/task.h"
 #include "task/tss.h"
 
-static struct paging_4gb_chunck* kchunk = NULL;
+static struct paging_chunk* kchunk = NULL;
 static struct tss tss;
 
 struct gdt gdt_real[PHOS_TOTAL_GDT_SEGMENTS];
@@ -63,7 +63,7 @@ void kernel_main() {
     tss_load(0x28);
 
     /* Setup a kernel paging chunk */
-    kchunk = paging_new_4gb(PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    kchunk = paging_new_chunk(PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
 
     /* Switch to kernel paging chunk */
     paging_switch(kchunk);
