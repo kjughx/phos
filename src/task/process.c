@@ -39,7 +39,7 @@ static int process_load_binary(const char* filename, struct process* process) {
     if ((ret = fstat(fd, &stat)) < 0)
         goto out;
 
-    if (!(program_data = kzalloc(sizeof(stat.filesize)))) {
+    if (!(program_data = kzalloc(stat.filesize))) {
         ret = -ENOMEM;
         goto out;
     }

@@ -128,6 +128,7 @@ int paging_get(pte_t* directory, void* vaddr, pte_t* entry) {
         return ret;
 
     pte_t* table = (pte_t*)(directory[directory_index] & 0xfffff000);
+    *entry = table[table_index];
 
-    return table[table_index];
+    return 0;
 }

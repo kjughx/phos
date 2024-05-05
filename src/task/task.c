@@ -21,7 +21,7 @@ struct task* task_current() { return current_task; }
 int copy_string_from_task(struct task* task, void* virtual, void* phys, int max) {
     int ret = 0;
     char* tmp = NULL;
-    pte_t old_directory;
+    pte_t old_directory = 0;
 
     if (max >= PAGING_PAGE_SIZE)
         return -EINVAL;
@@ -32,13 +32,14 @@ int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
     if ((ret = paging_get(task->page_directory->directory_entry, tmp, &old_directory)) < 0)
         return ret;
 
+    /* Map tmp -> tmp for the task */
     paging_map(task->page_directory, tmp, tmp,
                PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     paging_switch(task->page_directory);
     strncpy(tmp, virtual, max);
     kernel_page();
 
-    if (!paging_set(task->page_directory->directory_entry, tmp, old_directory))
+    if ((ret = paging_set(task->page_directory->directory_entry, tmp, old_directory)) < 0)
         goto out;
 
     strncpy(phys, tmp, max);
@@ -46,7 +47,7 @@ int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
 out:
     kfree(tmp);
 
-    return 0;
+    return ret;
 }
 
 int task_switch(struct task* task) {
