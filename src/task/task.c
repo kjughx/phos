@@ -21,7 +21,7 @@ struct task* task_current() { return current_task; }
 int copy_string_from_task(struct task* task, void* virtual, void* phys, int max) {
     int ret = 0;
     char* tmp = NULL;
-     pte_t old_directory;
+    pte_t old_directory;
 
     if (max >= PAGING_PAGE_SIZE)
         return -EINVAL;
@@ -32,7 +32,8 @@ int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
     if ((ret = paging_get(task->page_directory->directory_entry, tmp, &old_directory)) < 0)
         return ret;
 
-    paging_map(task->page_directory, tmp, tmp, PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    paging_map(task->page_directory, tmp, tmp,
+               PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
     paging_switch(task->page_directory);
     strncpy(tmp, virtual, max);
     kernel_page();
@@ -80,6 +81,12 @@ void task_current_save_state(struct interrupt_frame* frame) {
 int task_page() {
     user_registers();
     task_switch(current_task);
+    return 0;
+}
+
+int task_page_task(struct task* task) {
+    user_registers();
+    paging_switch(task->page_directory);
     return 0;
 }
 
@@ -159,4 +166,16 @@ void task_free(struct task* task) {
     paging_free_4gb(task->page_directory);
     task_list_remove(task);
     kfree(task);
+}
+
+void* task_get_stack_item(struct task* task, int index) {
+    void* ret = NULL;
+    uint32_t* sp_ptr = (uint32_t*)task->registers.esp;
+    /* Switch to the `task`'s page */
+    task_page_task(task);
+    ret = (void*)sp_ptr[index];
+
+    /* Switch back to kernel page */
+    kernel_page();
+    return ret;
 }

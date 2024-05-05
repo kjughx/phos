@@ -10,7 +10,7 @@
 
 #define ACK_INTR()                                                                                 \
     do {                                                                                           \
-        outb(0x20, 0x20);                                                                           \
+        outb(0x20, 0x20);                                                                          \
     } while (0);
 
 struct idt_desc idt_descriptors[PHOS_TOTAL_INTERRUPTS];

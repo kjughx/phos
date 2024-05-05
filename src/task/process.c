@@ -1,4 +1,5 @@
 #include "task/process.h"
+#include "common.h"
 #include "config.h"
 #include "fs/file.h"
 #include "kernel.h"
@@ -62,13 +63,21 @@ static int process_load_data(const char* filename, struct process* process) {
 }
 
 static int process_map_binary(struct process* process) {
-    return paging_map_to(process->task->page_directory,
-                        (void*)PHOS_PROGRAM_VIRTUAL_ADDRESS, process->p,
-                        (void*)ALIGN_PAGE(process->p + process->size),
-                        PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+    return paging_map_to(process->task->page_directory, (void*)PHOS_PROGRAM_VIRTUAL_ADDRESS,
+                         process->p, (void*)ALIGN_PAGE(process->p + process->size),
+                         PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
 }
 
-int process_map_memory(struct process* process) { return process_map_binary(process); }
+int process_map_memory(struct process* process) {
+    int ret = 0;
+    if ((ret = process_map_binary(process)) < 0)
+        return ret;
+
+    return paging_map_to(process->task->page_directory,
+                         (void*)PHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack,
+                         (void*)ALIGN_PAGE(process->stack + PHOS_USER_PROGRAM_STACK_SIZE),
+                         PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+}
 
 int process_load_for_slot(const char* filename, struct process** process, int process_slot) {
     int ret = 0;

@@ -93,7 +93,7 @@ int paging_map(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, in
 int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count,
                      int flags) {
     for (uint32_t i = 0; i < count; i++) {
-        if (paging_map(directory, vaddr, paddr, flags) == 0)
+        if (paging_map(directory, vaddr, paddr, flags) < 0)
             break;
 
         vaddr += PAGING_PAGE_SIZE;

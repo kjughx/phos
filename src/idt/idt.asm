@@ -67,10 +67,16 @@ isr80h_wrapper:
     push eax
 
     call isr80h_handler
-    ;NOTE: eax holds the address returned by isr80h_handler
+    mov dword[tmp_res], eax
 
     add esp, 8 ; Equivalent to popping eax and esp
 
     ; Restore general purpose registers for user land
     popad
+
+    mov eax, [tmp_res]
     iretd
+
+section .data
+tmp_res:
+    dd 0

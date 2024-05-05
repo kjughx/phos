@@ -5,6 +5,7 @@
 #include "disk/disk.h"
 #include "fs/file.h"
 #include "idt/idt.h"
+#include "isr80h/isr80h.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
@@ -12,7 +13,6 @@
 #include "task/process.h"
 #include "task/task.h"
 #include "task/tss.h"
-#include "isr80h/isr80h.h"
 
 static struct paging_4gb_chunck* kchunk = NULL;
 static struct tss tss;

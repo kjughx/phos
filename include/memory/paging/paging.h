@@ -29,8 +29,10 @@ extern void enable_paging();
 int paging_set(pte_t* directory, void* vaddr, pte_t val);
 void paging_free_4gb(struct paging_4gb_chunck* chunk);
 int paging_map(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, int flags);
-int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count, int flags);
-int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, void* pend, int flags);
+int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count,
+                     int flags);
+int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, void* pend,
+                  int flags);
 int paging_get(pte_t* directory, void* vaddr, pte_t* entry);
 
 #endif /* _PAGING_H_ */
