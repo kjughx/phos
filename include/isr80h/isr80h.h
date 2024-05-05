@@ -3,6 +3,7 @@
 
 enum Syscalls {
     SYSCALL_SUM,
+    SYSCALL_PRINT,
 };
 
 void isr80h_register_commands();

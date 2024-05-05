@@ -73,6 +73,8 @@ void kernel_main() {
     /* Register syscalls */
     isr80h_register_commands();
 
+    print("Hello, World! - Kernel\n");
+
     /* Enable system interrupts*/
     // enable_interrupts();
     struct process* process = NULL;
@@ -80,8 +82,6 @@ void kernel_main() {
         panic("Failed to load blank.bin");
 
     task_run_first_task();
-
-    print("Hello, World!");
     /* Never return */
     for (;;)
         ;

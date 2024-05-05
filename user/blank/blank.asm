@@ -3,10 +3,11 @@ section .asm
 
 global _start
 _start:
-    push 20
-    push 30
-    mov eax, 0 ; SYSCALL 0: sum
+    push message
+    mov eax, 1
     int 0x80
-    add esp, 8
-
+    add esp, 4
     jmp $
+
+section .data
+message: db "Hello, World! - Userland", 0xA, 0
