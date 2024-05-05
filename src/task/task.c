@@ -1,4 +1,5 @@
 #include "task/task.h"
+#include "common.h"
 #include "config.h"
 #include "idt/idt.h"
 #include "kernel.h"
@@ -16,6 +17,36 @@ struct task* task_tail = NULL;
 struct task* task_head = NULL;
 
 struct task* task_current() { return current_task; }
+
+int copy_string_from_task(struct task* task, void* virtual, void* phys, int max) {
+    int ret = 0;
+    char* tmp = NULL;
+     pte_t old_directory;
+
+    if (max >= PAGING_PAGE_SIZE)
+        return -EINVAL;
+
+    if (!(tmp = kzalloc(max)))
+        return -ENOMEM;
+
+    if ((ret = paging_get(task->page_directory->directory_entry, tmp, &old_directory)) < 0)
+        return ret;
+
+    paging_map(task->page_directory, tmp, tmp, PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    paging_switch(task->page_directory);
+    strncpy(tmp, virtual, max);
+    kernel_page();
+
+    if (!paging_set(task->page_directory->directory_entry, tmp, old_directory))
+        goto out;
+
+    strncpy(phys, tmp, max);
+
+out:
+    kfree(tmp);
+
+    return 0;
+}
 
 int task_switch(struct task* task) {
     current_task = task;

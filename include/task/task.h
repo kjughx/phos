@@ -40,6 +40,8 @@ struct task {
     struct task* prev;
 };
 
+int copy_string_from_task(struct task* task, void* virtual, void* phys, int max);
+
 struct task* task_new(struct process* process);
 struct task* task_current();
 struct task* task_get_next();

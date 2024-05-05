@@ -84,15 +84,16 @@ int paging_set(pte_t* directory, void* vaddr, pte_t val) {
 }
 
 int paging_map(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, int flags) {
-    if (!PAGING_ALIGNED(vaddr) || ! PAGING_ALIGNED(paddr))
+    if (!PAGING_ALIGNED(vaddr) || !PAGING_ALIGNED(paddr))
         return -EINVAL;
 
     return paging_set(directory->directory_entry, vaddr, (pte_t)paddr | flags);
 }
 
-int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count, int flags) {
+int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, uint32_t count,
+                     int flags) {
     for (uint32_t i = 0; i < count; i++) {
-        if(paging_map(directory, vaddr, paddr, flags) == 0)
+        if (paging_map(directory, vaddr, paddr, flags) == 0)
             break;
 
         vaddr += PAGING_PAGE_SIZE;
@@ -102,7 +103,8 @@ int paging_map_range(struct paging_4gb_chunck* directory, void* vaddr, void* pad
     return 0;
 }
 
-int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, void* pend, int flags) {
+int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr, void* pend,
+                  int flags) {
     if (!PAGING_ALIGNED(vaddr))
         return -EINVAL;
     if (!PAGING_ALIGNED(paddr))
@@ -116,4 +118,16 @@ int paging_map_to(struct paging_4gb_chunck* directory, void* vaddr, void* paddr,
     uint32_t total_pages = total_bytes / PAGING_PAGE_SIZE;
 
     return paging_map_range(directory, vaddr, paddr, total_pages, flags);
+}
+
+int paging_get(pte_t* directory, void* vaddr, pte_t* entry) {
+    int ret = 0;
+    pte_t directory_index = 0;
+    pte_t table_index = 0;
+    if ((ret = paging_get_indexes(vaddr, &directory_index, &table_index)) < 0)
+        return ret;
+
+    pte_t* table = (pte_t*)(directory[directory_index] & 0xfffff000);
+
+    return table[table_index];
 }
