@@ -150,3 +150,18 @@ int process_load(const char* filename, struct process** process) {
 
     return process_load_for_slot(filename, process, process_slot);
 }
+
+int process_switch(struct process* process) {
+    current_process = process;
+
+    return 0;
+}
+
+int process_load_switch(const char* filename, struct process** process) {
+    int ret = 0;
+    if ((ret = process_load(filename, process)) < 0)
+        return ret;
+
+    process_switch(*process);
+    return 0;
+}

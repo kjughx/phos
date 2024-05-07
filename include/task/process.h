@@ -38,4 +38,10 @@ struct process* process_current();
 /* @brief Load a new @process with the contens of @filename */
 int process_load(const char* filename, struct process** process);
 
+/* @brief Switch current process to @process */
+int process_switch(struct process* process);
+
+/* @brief Load and switch current process to @procees */
+int process_load_switch(const char* filename, struct process** process);
+
 #endif /* _PROCESS_H_ */
