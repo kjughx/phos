@@ -13,18 +13,18 @@
         outb(0x20, 0x20);                                                                          \
     } while (0);
 
+
 struct idt_desc idt_descriptors[PHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
-extern void int21h();
 extern void idt_load(struct idtr_desc* p);
 extern void no_interrupt();
 extern void isr80h_wrapper();
 
 static ISR80H_COMMAND isr80h_commands[PHOS_MAX_ISR80H_COMMANDS];
 
-void int21h_handler() {
-    print("Keyboard pressed!\n");
+extern void* interrupt_pointer_table[PHOS_TOTAL_INTERRUPTS];
+void interrupt_handler(int interrupt, struct interrupt_frame* frame) {
     ACK_INTR();
 }
 
@@ -79,10 +79,9 @@ void idt_init() {
     idtr_descriptor.base = (uint32_t)idt_descriptors;
 
     for (int i = 0; i < PHOS_TOTAL_INTERRUPTS; i++) {
-        idt_set(i, no_interrupt);
+        idt_set(i, interrupt_pointer_table[i]);
     }
 
-    idt_set(0x21, int21h);
     idt_set(0x80, isr80h_wrapper);
 
     idt_load(&idtr_descriptor);
