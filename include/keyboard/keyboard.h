@@ -1,6 +1,9 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
+#define ISR_KEYBOARD_INTERRUPT 0x21
+#define KEYBOARD_INPUT_PORT 0x60
+
 struct process;
 
 typedef int (*KEYBOARD_INIT_FUNCTION)();
