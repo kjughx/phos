@@ -43,6 +43,9 @@ void keyboard_push(char c) {
     if (!process)
         return;
 
+    if (c == 0x00)
+        return;
+
     process->keyboard.buffer[keyboard_write_index(process)] = c;
     process->keyboard.writer++;
 }

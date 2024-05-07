@@ -1,5 +1,7 @@
 #include "isr80h/io.h"
 #include "common.h"
+#include "idt/idt.h"
+#include "keyboard/keyboard.h"
 #include "string/string.h"
 #include "task/task.h"
 
@@ -10,4 +12,8 @@ void* isr80h_command1_print(struct interrupt_frame* frame) {
     print((char*)buf);
 
     return NULL;
+}
+
+void* isr80h_command2_getkey(struct interrupt_frame* frame) {
+    return (void*)(int)keyboard_pop();
 }

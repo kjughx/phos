@@ -6,4 +6,6 @@
 void isr80h_register_commands() {
     isr80h_register_command(SYSCALL_SUM, isr80h_command0_sum);
     isr80h_register_command(SYSCALL_PRINT, isr80h_command1_print);
+    isr80h_register_command(SYSCALL_GETKEY, isr80h_command2_getkey);
+
 }
