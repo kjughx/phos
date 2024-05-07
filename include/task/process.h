@@ -16,7 +16,7 @@ struct task;
  * @member size: Size of data pointed to by @p
  * @member stack: Physical pointer to process stack
  * @member keyboard: The keyboard buffer for the process
-*/
+ */
 struct process {
     uint16_t id;
     char filename[PHOS_MAX_PATH];

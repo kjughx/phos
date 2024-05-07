@@ -158,10 +158,12 @@ static void fat16_init_private(struct disk* disk, struct fat_private* private) {
     }
 }
 
-static int fat_sector_to_absolute(struct disk* disk, int sector) { return sector * disk->sector_size; }
+static int fat_sector_to_absolute(struct disk* disk, int sector) {
+    return sector * disk->sector_size;
+}
 
 static int fat16_get_total_items_for_directory(struct disk* disk, struct fat_private* private,
-                                        uint32_t start_pos) {
+                                               uint32_t start_pos) {
     struct fat_directory_item item;
     struct fat_directory_item empty;
     memset(&empty, 0, sizeof(struct fat_directory_item));
@@ -193,7 +195,7 @@ out:
 }
 
 static int fat16_get_root_directory(struct disk* disk, struct fat_private* private,
-                             struct fat_directory* directory) {
+                                    struct fat_directory* directory) {
     int ret = 0;
     struct fat_header* primary_header = &private->header.primary_header;
     int root_dir_sector_pos = (primary_header->fat_copies * primary_header->sectors_per_fat) +
@@ -233,7 +235,8 @@ out:
     return ret;
 }
 
-static void fat16_get_full_relative_filename(struct fat_directory_item* item, char* out, int max_len) {
+static void fat16_get_full_relative_filename(struct fat_directory_item* item, char* out,
+                                             int max_len) {
     memset(out, 0, max_len);
     char* tmp = out;
     strcpy_strip(tmp, (const char*)item->filename);
@@ -247,7 +250,7 @@ static void fat16_get_full_relative_filename(struct fat_directory_item* item, ch
 }
 
 static struct fat_directory_item* fat16_clone_directory_item(struct fat_directory_item* item,
-                                                      size_t size) {
+                                                             size_t size) {
     struct fat_directory_item* cpy = NULL;
     if (size < sizeof(struct fat_directory_item))
         return NULL;
@@ -372,7 +375,8 @@ static void fat16_free_item(struct fat_item* item) {
         panic("Invalid fat16 item");
 }
 
-static struct fat_directory* fat16_load_fat_directory(struct disk* disk, struct fat_directory_item* item) {
+static struct fat_directory* fat16_load_fat_directory(struct disk* disk,
+                                                      struct fat_directory_item* item) {
     int ret = 0;
     struct fat_directory* directory = NULL;
     struct fat_private* private = disk->fs_private;
@@ -408,7 +412,7 @@ out:
 }
 
 static struct fat_item* fat16_new_fat_item_for_directory_item(struct disk* disk,
-                                                       struct fat_directory_item* item) {
+                                                              struct fat_directory_item* item) {
     struct fat_item* f_item = kzalloc(sizeof(struct fat_item));
     if (!f_item)
         return NULL;
@@ -424,8 +428,8 @@ static struct fat_item* fat16_new_fat_item_for_directory_item(struct disk* disk,
     return f_item;
 }
 
-static struct fat_item* fat16_find_item_in_directory(struct disk* disk, struct fat_directory* directory,
-                                              const char* name) {
+static struct fat_item*
+fat16_find_item_in_directory(struct disk* disk, struct fat_directory* directory, const char* name) {
     char tmp_filename[PHOS_MAX_PATH];
     for (uint32_t i = 0; i < directory->total; i++) {
         fat16_get_full_relative_filename(&directory->item[i], tmp_filename, sizeof(tmp_filename));

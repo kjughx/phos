@@ -1,10 +1,10 @@
-#include "common.h"
-
-#include "config.h"
 #include "idt/idt.h"
+#include "common.h"
+#include "config.h"
 #include "io/io.h"
 #include "kernel.h"
 #include "memory/memory.h"
+#include "status.h"
 #include "string/string.h"
 #include "task/task.h"
 
@@ -13,6 +13,8 @@
         outb(0x20, 0x20);                                                                          \
     } while (0);
 
+/* From idt.asm */
+extern void* interrupt_pointer_table[PHOS_TOTAL_INTERRUPTS];
 
 struct idt_desc idt_descriptors[PHOS_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
@@ -21,11 +23,27 @@ extern void idt_load(struct idtr_desc* p);
 extern void no_interrupt();
 extern void isr80h_wrapper();
 
+static INTERRUPT_CB_FUNCTION interrupt_callbacks[PHOS_TOTAL_INTERRUPTS];
 static ISR80H_COMMAND isr80h_commands[PHOS_MAX_ISR80H_COMMANDS];
 
-extern void* interrupt_pointer_table[PHOS_TOTAL_INTERRUPTS];
 void interrupt_handler(int interrupt, struct interrupt_frame* frame) {
+    kernel_page();
+    if (interrupt_callbacks[interrupt]) {
+        task_current_save_state(frame);
+        interrupt_callbacks[interrupt](frame);
+    }
+    task_page();
+
     ACK_INTR();
+}
+
+int idt_register_intr_cb(int interrupt, INTERRUPT_CB_FUNCTION cb) {
+    if (interrupt < 0 || interrupt >= PHOS_TOTAL_INTERRUPTS)
+        return -EINVAL;
+
+    interrupt_callbacks[interrupt] = cb;
+
+    return 0;
 }
 
 void no_interrupt_handler() { ACK_INTR(); }

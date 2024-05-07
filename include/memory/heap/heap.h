@@ -31,14 +31,14 @@ struct heap {
  * @param p:     The start of the heap
  * @param end:   The end of the heap
  * @param table: A description of the heap
-*/
+ */
 int heap_create(struct heap* heap, void* p, void* end, struct heap_table* table);
 
 /* @brief Allocate memory on the heap
  *
  * @param heap: The heap to allocate on
  * @param size: The amount of memory to allocate
-*/
+ */
 void* heap_malloc(struct heap* heap, size_t size);
 
 /* @brief Free a heap */

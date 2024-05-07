@@ -14,7 +14,7 @@ typedef enum disk_type {
  * @member id:          The Id of the disk
  * @member filesystem:  The filesystem which is bound to this disk
  * @member fs_private:  Private data of the filesystem
-*/
+ */
 struct disk {
     disk_type_e type;
     int sector_size;

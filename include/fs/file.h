@@ -30,7 +30,7 @@ enum {
  * @member fs:      The filesystem which the file belongs to
  * @member private: Private data for file system descriptor
  * @member disk:    The disk that the file descriptor should be used on
-*/
+ */
 struct file_descriptor {
     int index;
     struct filesystem* fs;
@@ -42,7 +42,7 @@ struct file_descriptor {
  *
  * @member flags:    Flags of the file
  * @member filesize: The size of the file
-*/
+ */
 struct file_stat {
     FILE_STAT_FLAGS flags;
     uint32_t filesize;

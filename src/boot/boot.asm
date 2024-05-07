@@ -42,7 +42,6 @@ step2:
     mov sp, 0x7c00
 
 .load_protected:
-    cli
     lgdt[gdt_descriptor]
     mov eax, cr0
     or eax, 0x1

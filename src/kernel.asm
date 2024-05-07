@@ -32,8 +32,6 @@ _start:
     out 0x21, al
     ; End remap of the master PIC
 
-    ; Enabled interrupts
-
     call kernel_main
 
     jmp $ ; Never return
