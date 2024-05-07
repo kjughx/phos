@@ -77,7 +77,7 @@ void kernel_main() {
     /* Initialize all keyboards */
     keyboard_init();
 
-    print("Hello, World! - Kernel\n");
+    // print("Hello, World! - Kernel\n");
 
     /* Enable system interrupts*/
     // enable_interrupts();
