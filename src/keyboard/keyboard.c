@@ -1,13 +1,12 @@
 #include "keyboard/keyboard.h"
 #include "common.h"
+#include "keyboard/ps2.h"
 #include "status.h"
 #include "task/process.h"
 #include "task/task.h"
 
 static struct keyboard* keyboards_head = NULL;
 static struct keyboard* keyboards_tail = NULL;
-
-void keyboard_init() {}
 
 int keyboard_insert(struct keyboard* keyboard) {
     if (!keyboard->init)
@@ -22,6 +21,8 @@ int keyboard_insert(struct keyboard* keyboard) {
 
     return keyboard->init();
 }
+
+void keyboard_init() { keyboard_insert(ps2_init()); }
 
 static inline int keyboard_write_index(struct process* process) {
     return process->keyboard.writer % sizeof(process->keyboard.buffer);
