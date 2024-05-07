@@ -24,13 +24,16 @@ int diskstreamer_seek(struct disk_stream* stream, int pos) {
 int diskstreamer_read(struct disk_stream* stream, void* out, int total) {
     int sector = stream->pos / PHOS_SECTOR_SIZE;
     int offset = stream->pos % PHOS_SECTOR_SIZE;
+    int total_to_read = total;
     char buf[PHOS_SECTOR_SIZE];
     int ret = 0;
+
+    if (offset + total_to_read >= PHOS_SECTOR_SIZE)
+        total_to_read -= (offset+total_to_read) - PHOS_SECTOR_SIZE;
 
     if ((ret = disk_read_block(stream->disk, sector, 1, buf)) < 0)
         goto out;
 
-    int total_to_read = MIN(PHOS_SECTOR_SIZE, total);
     for (int i = 0; i < total_to_read; i++) {
         *(char*)out++ = buf[offset + i];
     }
@@ -38,8 +41,8 @@ int diskstreamer_read(struct disk_stream* stream, void* out, int total) {
     /* Adjust the stream */
     stream->pos += total_to_read;
 
-    if (total > PHOS_SECTOR_SIZE)
-        ret = diskstreamer_read(stream, out, total - PHOS_SECTOR_SIZE);
+    if (total_to_read != total)
+        ret = diskstreamer_read(stream, out, total - total_to_read);
 out:
     return ret;
 }
