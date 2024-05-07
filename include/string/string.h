@@ -72,4 +72,7 @@ int strnlen_terminator(const char* str, int max, char terminator);
 /* brief Print @str to the terminal */
 void print(const char* str);
 
+/* @brief Print @c to the terminal */
+void putchar(char c);
+
 #endif /* _STRING_H*/

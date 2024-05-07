@@ -155,3 +155,7 @@ void print(const char* str) {
         terminal_writechar(str[i], 15);
     }
 }
+
+void putchar(char c) {
+    terminal_writechar(c, 15);
+}

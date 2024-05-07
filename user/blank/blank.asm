@@ -3,13 +3,19 @@ section .asm
 
 global _start
 _start:
-    call getkey
     push message
     mov eax, 1
     int 0x80
     add esp, 4
 
-    jmp $
+_loop:
+    call getkey
+    push eax
+    mov eax, 3 ; command putchar
+    int 0x80
+    add esp, 4
+
+    jmp _loop
 
 getkey:
     mov eax, 2 ; command getkey
