@@ -9,6 +9,7 @@
 #include "memory/paging/paging.h"
 #include "status.h"
 #include "string/string.h"
+#include "task/task.h"
 
 const char elf_signature[] = {0x7f, 'E', 'L', 'F'};
 
@@ -72,4 +73,104 @@ int elf_validate_load(struct elf_header* header) {
         return -EINVAL;
 
     return 0;
+}
+
+int elf_process_phdr_pt_load(struct elf_file* elf_file, struct elf32_phdr* phdr) {
+    /* Set the lowest virtual address */
+    if (!elf_virtual_base(elf_file) || elf_virtual_base(elf_file) >= (void*)phdr->p_vaddr) {
+        elf_file->virtual_base_address = (void*) phdr->p_vaddr;
+        elf_file->physical_base_address = elf_memory(elf_file) + phdr->p_offset;
+    }
+
+    /* Set the highest virtual address */
+    if (!elf_virtual_end(elf_file) || elf_virtual_end(elf_file) <= (void*)phdr->p_vaddr + phdr->p_filesz) {
+        elf_file->virtual_end_address = (void*) phdr->p_vaddr + phdr->p_filesz;
+        elf_file->physical_end_address = elf_memory(elf_file) + phdr->p_offset + phdr->p_filesz;
+    }
+
+    return 0;
+}
+
+int elf_process_pheader(struct elf_file* elf_file, struct elf32_phdr* phdr) {
+
+    switch (phdr->p_type) {
+        case PT_LOAD: {
+            return elf_process_phdr_pt_load(elf_file, phdr);
+        } break;
+        default:
+            return -EINVAL;
+    }
+}
+
+int elf_process_pheaders(struct elf_file* elf_file) {
+    struct elf_header* header;
+    int ret = 0;
+
+    header = elf_header(elf_file);
+
+    for (int i = 0; i < header->e_phnum; i++) {
+        struct elf32_phdr* phdr = elf_program_header(header, i);
+        if ((ret  = elf_process_pheader(elf_file, phdr)) < 0)
+            return ret;
+    }
+
+    return 0;
+}
+
+int elf_process_loaded(struct elf_file* elf_file) {
+    struct elf_header* header;
+    int ret = 0;
+
+    header = elf_header(elf_file);
+
+    if ((ret = elf_validate_load(header)) < 0)
+        return ret;
+
+    if ((ret = elf_process_pheaders(elf_file)) < 0)
+        return ret;
+
+    return 0;
+}
+
+int elf_load(const char* filename, struct elf_file** file) {
+    struct elf_file *elf_file;
+    struct file_stat stat;
+    int fd = 0;
+    int ret = 0;
+
+    if (!(elf_file = kzalloc(sizeof(struct elf_file))))
+        return -ENOMEM;
+
+    if ((ret = fopen(filename, "r")) < 0)
+        goto out;
+
+    fd = ret;
+    if ((ret = fstat(fd, &stat)) < 0)
+        goto out;
+
+    if (!(elf_file->elf_memory = kzalloc(stat.filesize)))
+        goto out;
+
+    if((ret = fread(elf_file->elf_memory, stat.filesize, 1, fd)) < 0)
+        goto out;
+
+    if ((ret = elf_process_loaded(elf_file)) < 0)
+        goto out;
+
+    *file = elf_file;
+
+out:
+    if (ret) {
+        kfree(elf_file->elf_memory);
+        kfree(elf_file);
+    }
+    return ret;
+}
+
+void elf_close(struct elf_file* elf_file) {
+    if (!elf_file)
+        return;
+
+    kfree(elf_file->elf_memory);
+    kfree(elf_file);
 }

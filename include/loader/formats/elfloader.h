@@ -14,4 +14,7 @@ struct elf_file {
     void* physical_end_address;
 };
 
+int elf_load(const char* filename, struct elf_file** file);
+void elf_close(struct elf_file* elf_file);
+
 #endif /* _ELFLOADER_H_ */

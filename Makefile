@@ -26,10 +26,9 @@ all: $(BINS) user_all
 	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
 	dd if=/dev/zero bs=1024 count=1024 >> $(BIN)/os.bin
 
-	# Create a file
+	# Copy over an executable
 	sudo mount -t vfat $(BIN)/os.bin /mnt/d
-	echo "Hello from FAT16!" | sudo tee /mnt/d/hello.txt
-	sudo cp ./user/blank.bin /mnt/d
+	sudo cp ./user/blank.elf /mnt/d
 	sudo umount /mnt/d
 
 $(BIN)/kernel.bin: $(OBJS)
