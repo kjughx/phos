@@ -7,13 +7,14 @@ int main(int argc, char** argv) {
     void *p = malloc(512);
 
     if (p) {
-        print("Malloc'd memory\n");
+        printf("Malloc'd memory: %p\n", p);
     }
 
     free(p);
 
     print(itoa(8637));
     putchar('A');
+    printf("%s: %d\n", "Hello from printf", 1337);
 
     while (p) {
         if (getkey() != 0) {

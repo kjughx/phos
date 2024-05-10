@@ -4,5 +4,6 @@
 char* itoa(int i);
 
 int putchar(int c);
+int printf(const char* fmt, ...);
 
 #endif /* _STDIO_H_ */

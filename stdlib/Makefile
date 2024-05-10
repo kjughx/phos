@@ -1,9 +1,9 @@
 SRC=src
 OBJ=build
 
-CFLAGS := -std=gnu99 -Wall -Wextra -Werror -Wno-cpp -Wno-unused-parameter -Wno-unused-function -O0 -Iinclude/ -ffreestanding \
+CFLAGS := -std=gnu99 -Wall -Wextra -Werror -Wno-cpp -Wno-unused-parameter -Wno-unused-function -O0 -Iinclude/ \
 	-falign-jumps -falign-functions -falign-labels -falign-loops -fstrength-reduce  -fomit-frame-pointer -finline-functions \
-	-fno-builtin -nostartfiles -nodefaultlibs -nostdlib -nostdinc -g
+	-fno-builtin -nostartfiles -nodefaultlibs -nostdlib -g
 
 CC := i686-elf-gcc
 
