@@ -20,7 +20,7 @@ ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
 OBJS += $(patsubst src/%.c, $(OBJ)/%.o, $(C_SRCS))
 OBJS += $(filter-out build/kernel.asm.o, $(patsubst src/%.asm, $(OBJ)/%.asm.o, $(ASM_SRCS)))
 
-all: $(BINS) user_all
+all: $(BINS) stdlib_all user_all
 	@rm -f $(BIN)/os.bin
 	dd if=$(BIN)/boot.bin >> $(BIN)/os.bin
 	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
@@ -47,9 +47,14 @@ $(OBJ)/%.o: $(SRC)/%.c
 	@mkdir -p $(dir $@)
 	$(CC) $(CFLAGS) -c $< -o $@
 
+stdlib_all:
+	@make -C stdlib all
+
+stdlib_clean:
+	@make -C stdlib clean
+
 user_all:
 	@make -C user
-
 user_clean:
 	@make -C user clean
 
@@ -59,11 +64,11 @@ gdb: all
 qemu: all
 	qemu-system-i386 -hda bin/os.bin
 
-clean: user_clean
+clean: stdlib_clean user_clean
 	@rm -rf $(OBJ) $(BIN)
 
 cc:
 	@make clean
 	@bear -- make all
 
-.PHONY: all _all gdb qemu clean cc
+.PHONY: all _all gdb qemu clean cc stdlib_all stdlib_clean user_all user_clean

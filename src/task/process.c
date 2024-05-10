@@ -84,12 +84,22 @@ static int process_load_data(const char* filename, struct process* process) {
 }
 
 static int process_map_elf(struct process* process) {
+    int ret = 0;
     struct elf_file* elf_file = process->elf_file;
+    struct elf_header* header = elf_header(elf_file);
+    for (int i = 0; i < header->e_phnum; i++) {
+        struct elf32_phdr* phdr = elf_program_header(header, i);
+        uint8_t flags = PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL;
+        if (phdr->p_flags & PF_W)
+            flags |= PAGING_IS_WRITABLE;
 
-    int ret =
-        paging_map_to(process->task->page_directory, PAGE_ALIGN_LOWER(elf_virtual_base(elf_file)),
-                      elf_physical_base(elf_file), PAGE_ALIGN(elf_physical_end(elf_file)),
-                      PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+        void* phdr_paddr = elf_phdr_paddr(elf_file, phdr);
+        ret = paging_map_to(process->task->page_directory, PAGE_ALIGN_LOWER(phdr->p_vaddr),
+                            PAGE_ALIGN_LOWER(phdr_paddr), PAGE_ALIGN(phdr_paddr + phdr->p_filesz),
+                            flags);
+        if (ret < 0)
+            break;
+    }
 
     return ret;
 }

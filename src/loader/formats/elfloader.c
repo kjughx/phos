@@ -55,6 +55,10 @@ struct elf32_shdr* elf_section(struct elf_header* header, int index) {
     return &elf_sheader(header)[index];
 }
 
+void* elf_phdr_paddr(struct elf_file* elf_file, struct elf32_phdr* phdr) {
+    return elf_file->elf_memory + phdr->p_offset;
+}
+
 char* elf32_str_table(struct elf_header* header) {
     return (char*)header + elf_section(header, header->e_shstrndx)->sh_offset;
 }
