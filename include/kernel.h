@@ -10,6 +10,7 @@
 static inline void panic(const char* message) {
     print("Kernel panic: ");
     print(message);
+    print("\n");
     asm volatile("hlt");
 }
 

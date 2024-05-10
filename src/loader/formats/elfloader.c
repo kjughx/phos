@@ -40,7 +40,7 @@ struct elf32_shdr* elf_sheader(struct elf_header* header) {
     return (struct elf32_shdr*)((uint32_t)header + header->e_shoff);
 }
 
-struct elf32_phdr* elf_pheader(struct elf_header* header) {
+struct elf32_phdr* elf_pheaders(struct elf_header* header) {
     if (!header->e_phoff)
         return NULL;
 
@@ -48,7 +48,7 @@ struct elf32_phdr* elf_pheader(struct elf_header* header) {
 }
 
 struct elf32_phdr* elf_program_header(struct elf_header* header, int index) {
-    return &elf_pheader(header)[index];
+    return &elf_pheaders(header)[index];
 }
 
 struct elf32_shdr* elf_section(struct elf_header* header, int index) {
@@ -70,7 +70,7 @@ void* elf_physical_end(struct elf_file* file) { return file->physical_end_addres
 int elf_validate_load(struct elf_header* header) {
     if (!(elf_valid_signature(header) && elf_valid_class(header) && elf_valid_encoding(header) &&
           elf_has_program_header(header)))
-        return -EINVAL;
+        return -EBADFORMAT;
 
     return 0;
 }

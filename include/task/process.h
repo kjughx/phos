@@ -3,6 +3,11 @@
 
 #include "common.h"
 #include "config.h"
+#include "loader/formats/elfloader.h"
+
+typedef unsigned char PROCESS_FILETYPE;
+#define PROCESS_FILETYPE_ELF 0
+#define PROCESS_FILETYPE_BINARY 1
 
 struct task;
 
@@ -22,7 +27,11 @@ struct process {
     char filename[PHOS_MAX_PATH];
     struct task* task;
     void* allocations[PHOS_MAX_PROGRAM_ALLOCATIONS];
-    void* p;
+    PROCESS_FILETYPE filetype;
+    union {
+        void* p; /* Binary file */
+        struct elf_file* elf_file;
+    };
     uint32_t size;
     void* stack;
     struct keyboard_buffer {

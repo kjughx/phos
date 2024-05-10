@@ -3,6 +3,8 @@
 #include "config.h"
 #include "fs/file.h"
 #include "kernel.h"
+#include "loader/formats/elf.h"
+#include "loader/formats/elfloader.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
@@ -27,6 +29,19 @@ struct process* process_get(int pid) {
     return processes[pid];
 }
 
+static int process_load_elf(const char* filename, struct process* process) {
+    struct elf_file* elf_file;
+    int ret = 0;
+
+    if ((ret = elf_load(filename, &elf_file)) < 0)
+        return ret;
+
+    process->filetype = PROCESS_FILETYPE_ELF;
+    process->elf_file = elf_file;
+
+    return 0;
+}
+
 static int process_load_binary(const char* filename, struct process* process) {
     int fd = -1;
     int ret = 0;
@@ -47,6 +62,7 @@ static int process_load_binary(const char* filename, struct process* process) {
     if ((ret = fread(program_data, stat.filesize, 1, fd)) != 1)
         goto out;
 
+    process->filetype = PROCESS_FILETYPE_BINARY;
     process->p = program_data;
     process->size = stat.filesize;
 
@@ -59,23 +75,52 @@ out:
 }
 
 static int process_load_data(const char* filename, struct process* process) {
-    return process_load_binary(filename, process);
+    int ret = 0;
+    ret = process_load_elf(filename, process);
+    if (ret == -EBADFORMAT)
+        return process_load_binary(filename, process);
+
+    return ret;
+}
+
+static int process_map_elf(struct process* process) {
+    struct elf_file* elf_file = process->elf_file;
+
+    int ret =
+        paging_map_to(process->task->page_directory, PAGE_ALIGN_LOWER(elf_virtual_base(elf_file)),
+                      elf_physical_base(elf_file), PAGE_ALIGN(elf_physical_end(elf_file)),
+                      PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+
+    return ret;
 }
 
 static int process_map_binary(struct process* process) {
     return paging_map_to(process->task->page_directory, (void*)PHOS_PROGRAM_VIRTUAL_ADDRESS,
-                         process->p, (void*)ALIGN_PAGE(process->p + process->size),
+                         process->p, PAGE_ALIGN(process->p + process->size),
                          PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
 }
 
 int process_map_memory(struct process* process) {
     int ret = 0;
-    if ((ret = process_map_binary(process)) < 0)
+
+    /* Map the program */
+    switch (process->filetype) {
+    case PROCESS_FILETYPE_ELF: {
+        ret = process_map_elf(process);
+    } break;
+    case PROCESS_FILETYPE_BINARY: {
+        ret = process_map_binary(process);
+    } break;
+    default:
+        panic("process_map_memory: Unexpected filetype");
+    }
+    if (ret < 0)
         return ret;
 
+    /* Map the stack */
     return paging_map_to(process->task->page_directory,
                          (void*)PHOS_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack,
-                         (void*)ALIGN_PAGE(process->stack + PHOS_USER_PROGRAM_STACK_SIZE),
+                         PAGE_ALIGN(process->stack + PHOS_USER_PROGRAM_STACK_SIZE),
                          PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
 }
 

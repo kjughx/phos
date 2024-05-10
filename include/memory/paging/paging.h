@@ -14,7 +14,8 @@
 #define PAGING_TOTAL_ENTRIES_PER_TABLE 1024
 #define PAGING_PAGE_SIZE 4096
 
-#define ALIGN_PAGE(x) ALIGN((uint32_t)x, PAGING_PAGE_SIZE)
+#define PAGE_ALIGN(x) ((void*)ALIGN((uint32_t)x, PAGING_PAGE_SIZE))
+#define PAGE_ALIGN_LOWER(x) ((void*)ALIGN_LOWER((uint32_t)x, PAGING_PAGE_SIZE))
 #define PAGING_ALIGNED(x) (((uint32_t)(x) % PAGING_PAGE_SIZE) == 0)
 
 /* Page table entry */

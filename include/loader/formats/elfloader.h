@@ -14,6 +14,14 @@ struct elf_file {
     void* physical_end_address;
 };
 
+struct elf_header* elf_header(struct elf_file* file);
+void* elf_virtual_base(struct elf_file* file);
+void* elf_virtual_end(struct elf_file* file);
+void* elf_physical_base(struct elf_file* file);
+void* elf_physical_end(struct elf_file* file);
+struct elf32_phdr* elf_pheaders(struct elf_header* header);
+struct elf32_phdr* elf_program_header(struct elf_header* header, int index);
+
 int elf_load(const char* filename, struct elf_file** file);
 void elf_close(struct elf_file* elf_file);
 

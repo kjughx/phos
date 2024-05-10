@@ -20,5 +20,6 @@ typedef _Bool bool;
 
 #define __ALIGN_MASK(x, mask) (((x) + (mask)) & ~(mask))
 #define ALIGN(x, a) __ALIGN_MASK(x, (typeof(x))(a)-1)
+#define ALIGN_LOWER(x, a) ((x) - ((x) % (a)))
 
 #endif /* _COMMON_H_ */

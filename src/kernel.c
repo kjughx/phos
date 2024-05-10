@@ -82,8 +82,8 @@ void kernel_main() {
     /* Enable system interrupts*/
     // enable_interrupts();
     struct process* process = NULL;
-    if (process_load_switch("0:/blank.bin", &process) < 0)
-        panic("Failed to load blank.bin");
+    if (process_load_switch("0:/blank.elf", &process) < 0)
+        panic("Failed to load blank.elf");
 
     task_run_first_task();
     /* Never return */
