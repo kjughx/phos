@@ -94,9 +94,9 @@ static int process_map_elf(struct process* process) {
             flags |= PAGING_IS_WRITABLE;
 
         void* phdr_paddr = elf_phdr_paddr(elf_file, phdr);
-        ret = paging_map_to(process->task->page_directory, PAGE_ALIGN_LOWER(phdr->p_vaddr),
-                            PAGE_ALIGN_LOWER(phdr_paddr), PAGE_ALIGN(phdr_paddr + phdr->p_memsz),
-                            flags);
+        ret = paging_map_to(process->task->page_directory, (void*)PAGE_ALIGN_LOWER(phdr->p_vaddr),
+                            (void*)PAGE_ALIGN_LOWER(phdr_paddr),
+                            (void*)PAGE_ALIGN(phdr_paddr + phdr->p_memsz), flags);
         if (ret < 0)
             break;
     }
@@ -106,7 +106,7 @@ static int process_map_elf(struct process* process) {
 
 static int process_map_binary(struct process* process) {
     return paging_map_to(process->task->page_directory, (void*)PHIX_PROGRAM_VIRTUAL_ADDRESS,
-                         process->p, PAGE_ALIGN(process->p + process->size),
+                         process->p, (void*)PAGE_ALIGN(process->p + process->size),
                          PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
 }
 
@@ -130,7 +130,7 @@ int process_map_memory(struct process* process) {
     /* Map the stack */
     return paging_map_to(process->task->page_directory,
                          (void*)PHIX_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack,
-                         PAGE_ALIGN(process->stack + PHIX_USER_PROGRAM_STACK_SIZE),
+                         (void*)PAGE_ALIGN(process->stack + PHIX_USER_PROGRAM_STACK_SIZE),
                          PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
 }
 

@@ -4,7 +4,7 @@
 
 struct interrupt_frame;
 typedef void* (*SYSCALL)(struct interrupt_frame* frame);
-typedef void (*INTERRUPT_CB_FUNCTION)();
+typedef void (*INTERRUPT_CB_FUNCTION)(struct interrupt_frame* frame);
 
 struct idt_desc {
     uint16_t offset_1; /* Offset 0-15 */

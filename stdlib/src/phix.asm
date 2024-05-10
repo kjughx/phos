@@ -70,3 +70,27 @@ phix_exec:
     add esp, 4
     pop ebp
     ret
+
+global phix_get_paddr:function
+; void* phix_get_paddr(void* vaddr)
+phix_get_paddr:
+    push ebp
+    mov ebp, esp
+    mov eax, 7 ; Command free
+    push dword[ebp+8] ; Variable vaddr
+    int 0x80   ; invoke syscall
+    add esp, 4
+    pop ebp
+    ret
+
+global phix_get_flags:function
+; uint8_t phix_get_flags(void* vaddr)
+phix_get_flags:
+    push ebp
+    mov ebp, esp
+    mov eax, 8 ; Command free
+    push dword[ebp+8] ; Variable vaddr
+    int 0x80   ; invoke syscall
+    add esp, 4
+    pop ebp
+    ret

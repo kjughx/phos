@@ -4,6 +4,7 @@
 #include "io/io.h"
 #include "kernel.h"
 #include "memory/memory.h"
+#include "memory/paging/paging.h"
 #include "status.h"
 #include "string/string.h"
 #include "task/task.h"
@@ -101,6 +102,7 @@ void idt_init() {
     }
 
     idt_set(0x80, isr80h_wrapper);
+    idt_set(14, page_fault_intr_cb);
 
     idt_load(&idtr_descriptor);
 }

@@ -79,4 +79,7 @@ void print(const char* str);
 /* @brief Print @c to the terminal */
 void putchar(char c);
 
+char* itoa(int i);
+int printk(const char* fmt, ...);
+
 #endif /* _STRING_H*/

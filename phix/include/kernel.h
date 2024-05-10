@@ -8,9 +8,7 @@
 
 /* @brief Halt the system after printing @message */
 static inline void panic(const char* message) {
-    print("Kernel panic: ");
-    print(message);
-    print("\n");
+    printk("Kernel panic: %s\n", message);
     asm volatile("hlt");
 }
 

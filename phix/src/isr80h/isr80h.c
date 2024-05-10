@@ -13,4 +13,6 @@ void isr80h_register_commands() {
     syscall_register(SYSCALL_MALLOC, syscall4_malloc);
     syscall_register(SYSCALL_FREE, syscall5_free);
     syscall_register(SYSCALL_EXEC, syscall6_process_load_start);
+    syscall_register(SYSCALL_GET_PADDR, syscall7_get_paddr);
+    syscall_register(SYSCALL_GET_FLAGS, syscall8_get_flags);
 }
