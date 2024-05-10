@@ -3,7 +3,8 @@
 #include "stdio.h"
 
 int main(int argc, char** argv) {
-    print("Hello from C\n");
+    char buf[128];
+    printf("Hello from C\n");
     void *p = malloc(512);
 
     if (p) {
@@ -12,14 +13,9 @@ int main(int argc, char** argv) {
 
     free(p);
 
-    print(itoa(8637));
-    putchar('A');
-    printf("%s: %d\n", "Hello from printf", 1337);
-
-    while (p) {
-        if (getkey() != 0) {
-            print("Key was pressed\n");
-        }
+    readline(buf, sizeof(buf) , true);
+    printf("%s\n", buf);
+    while (1) {
     }
     return 0;
 }

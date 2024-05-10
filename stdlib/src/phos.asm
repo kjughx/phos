@@ -1,9 +1,9 @@
 [BITS 32]
 section .asm
 
-global print:function
-; void print(const char* message)
-print:
+global phos_print:function
+; void phos_print(const char* message)
+phos_print:
     push ebp
     mov ebp, esp
     push dword[ebp+8]
@@ -13,9 +13,9 @@ print:
     pop ebp
     ret
 
-global getkey:function
-; int getkey()
-getkey:
+global phos_getkey:function
+; int phos_getkey()
+phos_getkey:
     push ebp
     mov ebp, esp
     mov eax, 2 ; command print
@@ -24,7 +24,7 @@ getkey:
     ret
 
 global phos_putchar:function
-; void putchar(char c)
+; void phos_putchar(char c)
 phos_putchar:
     push ebp
     mov ebp, esp

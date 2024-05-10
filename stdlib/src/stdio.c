@@ -2,6 +2,38 @@
 #include "phos.h"
 #include <stdarg.h>
 
+int getkey() {
+    int val;
+    do {
+        val = phos_getkey();
+    } while (val == 0);
+
+    return val;
+}
+
+void readline(char* buf, int max, bool output_while_typing) {
+    int i = 0;
+    for (i = 0; i < max - 1; i++) {
+        char key = getkey();
+
+        /* Carriage return, the line is finished */
+        if (key == 13)
+            break;
+        if (output_while_typing)
+            putchar(key);
+        /* Backspace */
+        if (key == 0x08 && i >= 1) {
+            buf[i - 1] = 0x00;
+            i -= 2; /* -2 to -1 after i++ */
+            continue;
+        }
+
+        buf[i] = key;
+    }
+
+    buf[i] = 0x00;
+}
+
 char* itoa(int i) {
     static char text[12];
     int loc = 11;
@@ -61,16 +93,16 @@ int printf(const char* fmt, ...) {
         switch (*++p) {
         case 'd': {
             ival = va_arg(ap, int);
-            print(itoa(ival));
+            phos_print(itoa(ival));
         } break;
         case 's': {
             sval = va_arg(ap, char*);
-            print(sval);
+            phos_print(sval);
         } break;
         case 'p': {
             ival = va_arg(ap, int);
-            print("0X");
-            print(decimal_to_hex(ival));
+            phos_print("0X");
+            phos_print(decimal_to_hex(ival));
         } break;
         default:
             putchar(*p);
