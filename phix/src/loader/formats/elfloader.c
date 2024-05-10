@@ -36,7 +36,7 @@ void* elf_memory(struct elf_file* file) { return file->elf_memory; }
 
 struct elf_header* elf_header(struct elf_file* file) { return file->elf_memory; }
 
-struct elf32_shdr* elf_sheader(struct elf_header* header) {
+struct elf32_shdr* elf_sheaders(struct elf_header* header) {
     return (struct elf32_shdr*)((uint32_t)header + header->e_shoff);
 }
 
@@ -52,7 +52,7 @@ struct elf32_phdr* elf_program_header(struct elf_header* header, int index) {
 }
 
 struct elf32_shdr* elf_section(struct elf_header* header, int index) {
-    return &elf_sheader(header)[index];
+    return &elf_sheaders(header)[index];
 }
 
 void* elf_phdr_paddr(struct elf_file* elf_file, struct elf32_phdr* phdr) {
@@ -88,9 +88,9 @@ int elf_process_phdr_pt_load(struct elf_file* elf_file, struct elf32_phdr* phdr)
 
     /* Set the highest virtual address */
     if (!elf_virtual_end(elf_file) ||
-        elf_virtual_end(elf_file) <= (void*)phdr->p_vaddr + phdr->p_filesz) {
-        elf_file->virtual_end_address = (void*)phdr->p_vaddr + phdr->p_filesz;
-        elf_file->physical_end_address = elf_memory(elf_file) + phdr->p_offset + phdr->p_filesz;
+        elf_virtual_end(elf_file) <= (void*)phdr->p_vaddr + phdr->p_memsz) {
+        elf_file->virtual_end_address = (void*)phdr->p_vaddr + phdr->p_memsz;
+        elf_file->physical_end_address = elf_memory(elf_file) + phdr->p_offset + phdr->p_memsz;
     }
 
     return 0;

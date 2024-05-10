@@ -94,11 +94,12 @@ static int process_map_elf(struct process* process) {
         if (phdr->p_flags & PF_W)
             flags |= PAGING_IS_WRITABLE;
 
-        if (phdr->p_filesz == 0) { /* BSS section */
-            if (!(process->bss = kzalloc(PAGE_ALIGN(phdr->p_memsz))))
+        /* BSS section takes no space on file so we need to allocate for it */
+        if (phdr->p_filesz == 0) {
+            if (!(process->bss.p = kzalloc(PAGE_ALIGN(phdr->p_memsz))))
                 return -ENOMEM;
-            process->bss_size = phdr->p_memsz;
-            phdr_paddr = process->bss;
+            process->bss.size = phdr->p_memsz;
+            phdr_paddr = process->bss.p;
         }
 
         ret = paging_map_to(process->task->page_directory, (void*)PAGE_ALIGN_LOWER(phdr->p_vaddr),
@@ -231,7 +232,7 @@ int process_load_switch(const char* filename, struct process** process) {
 static int process_find_free_allocatation_index(struct process* process) {
     int ret = -ENOMEM;
     for (int i = 0; i < PHIX_MAX_PROGRAM_ALLOCATIONS; i++) {
-        if (process->allocations[i] == 0)
+        if (process->allocations[i].p == 0)
             return i;
     }
 
@@ -240,23 +241,38 @@ static int process_find_free_allocatation_index(struct process* process) {
 
 void* process_malloc(struct process* process, size_t size) {
     int index;
+    int ret = 0;
     void* p = kzalloc(size);
     if (!p)
         return NULL;
 
     index = process_find_free_allocatation_index(process);
-    if (index < 0)
+    if (index < 0) {
+        kfree(p);
         return NULL;
+    }
 
-    process->allocations[index] = p;
+    /* TODO: Map this for all tasks of a process */
+    ret = paging_map_to(process->task->page_directory, p, p, (void*)PAGE_ALIGN(p + size),
+                        PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+    if (ret < 0) {
+        kfree(p);
+        return NULL;
+    }
+
+    process->allocations[index].p = p;
+    process->allocations[index].size = size;
 
     return p;
 }
 
 void process_free(struct process* process, void* p) {
     for (int i = 0; i < PHIX_MAX_PROGRAM_ALLOCATIONS; i++) {
-        if (process->allocations[i] == p) {
-            process->allocations[i] = NULL;
+        if (process->allocations[i].p == p) {
+            paging_map_to(process->task->page_directory, p, 0,
+                                (void*)PAGE_ALIGN(p + process->allocations[i].size), 0);
+            process->allocations[i].p = NULL;
+            process->allocations[i].size = 0;
             kfree(p);
             return;
         }

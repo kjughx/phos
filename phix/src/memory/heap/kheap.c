@@ -2,7 +2,7 @@
 #include "config.h"
 #include "memory/heap/heap.h"
 #include "memory/memory.h"
-#include "string/string.h"
+#include "kernel.h"
 
 static struct heap kernel_heap;
 static struct heap_table kernel_heap_table;
@@ -15,7 +15,7 @@ void kheap_init() {
     void* end = (void*)(PHIX_HEAP_SADDRESS + PHIX_HEAP_SIZE_BYTES);
     int res = heap_create(&kernel_heap, (void*)PHIX_HEAP_SADDRESS, end, &kernel_heap_table);
     if (res < 0) {
-        print("Failed to create heap\n");
+        panic("Failed to create heap\n");
     }
 }
 

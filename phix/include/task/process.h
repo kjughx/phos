@@ -11,6 +11,11 @@ typedef unsigned char PROCESS_FILETYPE;
 
 struct task;
 
+struct process_allocation {
+    size_t size;
+    void* p;
+};
+
 /* @brief Represents a process
  *
  * @member id: The process id
@@ -26,15 +31,17 @@ struct process {
     uint16_t id;
     char filename[PHIX_MAX_PATH];
     struct task* task;
-    void* allocations[PHIX_MAX_PROGRAM_ALLOCATIONS];
+    struct process_allocation allocations[PHIX_MAX_PROGRAM_ALLOCATIONS];
     PROCESS_FILETYPE filetype;
     union {
         void* p; /* Binary file */
         struct elf_file* elf_file;
     };
     uint32_t size;
-    void* bss;
-    uint32_t bss_size;
+    struct bss {
+        void* p;
+        size_t size;
+    } bss;
     void* stack;
     struct keyboard_buffer {
         char buffer[PHIX_KEYBOARD_BUFFER_SIZE];
