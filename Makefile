@@ -27,7 +27,8 @@ all: $(BINS) stdlib_all user_all
 
 	# Copy over an executable
 	sudo mount -t vfat $(BIN)/os.bin /mnt/d
-	sudo cp ./user/blank.elf /mnt/d
+	sudo cp ./user/blank/blank.elf /mnt/d
+	sudo cp ./user/shell/shell.elf /mnt/d
 	sudo umount /mnt/d
 
 $(BIN)/kernel.bin: $(OBJS)

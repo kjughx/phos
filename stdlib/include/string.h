@@ -1,19 +1,7 @@
-#ifndef _STRING_H
-#define _STRING_H
+#ifndef _STRING_H_
+#define _STRING_H_
 
 #include "common.h"
-
-/* @brief Initialize and clear the terminal */
-void terminal_init();
-
-/* @brief Output a character on the terminal
- *
- * @param x:     The x coordinate to output to
- * @param y:     The y coordinate to output to
- * @param c:     The character to output
- * @param color: The color of the output
- */
-void terminal_putchar(int x, int y, char c, char color);
 
 /* @brief Convert a character to lowercase
  *
@@ -21,15 +9,11 @@ void terminal_putchar(int x, int y, char c, char color);
  */
 char to_lower(unsigned char c);
 
-char* sto_lower(char* str);
-
 /* @brief Convert a character to uppercase
  *
  * @param c: The character to convert
  */
 char to_upper(unsigned char c);
-
-char* sto_upper(char* str);
 
 /* @brief Check if a character is a digit
  *
@@ -73,10 +57,4 @@ int istrncmp(const char* s1, const char* s2, size_t n);
 /* @brief Calculate the length of @str until @terminator, or @max if too long */
 int strnlen_terminator(const char* str, int max, char terminator);
 
-/* brief Print @str to the terminal */
-void print(const char* str);
-
-/* @brief Print @c to the terminal */
-void putchar(char c);
-
-#endif /* _STRING_H*/
+#endif /* _STRING_H_ */

@@ -7,7 +7,6 @@ int phos_getkey();
 void* phos_malloc(size_t size);
 void phos_free(void* p);
 void phos_putchar(char c);
-
-void readline(char* buf, int max, bool output_while_typing);
+void phos_exec(const char* filename);
 
 #endif /* _PHOS_H_ */

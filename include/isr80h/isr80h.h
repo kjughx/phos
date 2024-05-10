@@ -8,6 +8,7 @@ enum Syscalls {
     SYSCALL_PUTCHAR,
     SYSCALL_MALLOC,
     SYSCALL_FREE,
+    SYSCALL_EXEC,
 };
 
 void isr80h_register_commands();

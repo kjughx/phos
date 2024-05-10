@@ -58,3 +58,15 @@ phos_free:
     add esp, 4
     pop ebp
     ret
+
+global phos_exec:function
+; void exec(const char* filename)
+phos_exec:
+    push ebp
+    mov ebp, esp
+    mov eax, 6 ; Command free
+    push dword[ebp+8] ; Variable filename
+    int 0x80   ; invoke syscall
+    add esp, 4
+    pop ebp
+    ret
