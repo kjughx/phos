@@ -95,6 +95,10 @@ int printf(const char* fmt, ...) {
             ival = va_arg(ap, int);
             phix_print(itoa(ival));
         } break;
+        case 'c': {
+            ival = va_arg(ap, int);
+            putchar(ival);
+        } break;
         case 's': {
             sval = va_arg(ap, char*);
             phix_print(sval);

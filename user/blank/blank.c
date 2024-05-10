@@ -3,8 +3,7 @@
 #include "stdlib.h"
 
 int main(int argc, char** argv) {
-    getkey();
-    printf("GOT KEY\n");
+    printf("hello from %s\n", __FILE__);
     while (1) {
     }
     return 0;

@@ -26,3 +26,7 @@ $(OBJ)/%.o: $(SRC)/%.c
 
 clean:
 	@rm -rf build/* stdlib.elf
+
+cc:
+		@make clean
+		@bear -- make all

@@ -3,6 +3,7 @@
 #include "stdio.h"
 #include "string.h"
 #include "unistd.h"
+#include "stdlib.h"
 
 int main(void) {
     printf("PHIX v1.0.0\n");
@@ -10,8 +11,11 @@ int main(void) {
         printf("# > ");
         char buf[1024];
         readline(buf, sizeof(buf), true);
-        if (strncmp(buf, "RUN ", 4) == 0) {
-            exec(buf + 4);
+        char* cmd = strtok(buf, " ");
+        if (strncmp(cmd, "RUN", 3) == 0) {
+            char* filename = strtok(NULL, " ");
+            printf("\nStarting %s\n", filename);
+            exec(filename);
         }
         printf("\n");
     }

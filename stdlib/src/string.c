@@ -1,4 +1,7 @@
 #include "string.h"
+#include "stdbool.h"
+#include "stdlib.h"
+#include "stdio.h"
 
 bool is_digit(char c) { return (c >= 48 && c <= 57); }
 
@@ -109,4 +112,53 @@ int istrncmp(const char* s1, const char* s2, size_t n) {
     }
 
     return 0;
+}
+
+
+char* sp = NULL;
+char* strtok(char* str, const char* delimiters) {
+    int i = 0;
+    int len = strlen(delimiters);
+    if (!str && !sp)
+        return 0;
+
+    if (str && !sp) {
+        sp = str;
+    }
+
+    char* p_start = sp;
+    while (1) {
+        for (i = 0; i < len; i++) {
+            if (*p_start == delimiters[i]) {
+                p_start++;
+                break;
+            }
+        }
+
+        if (i == len) {
+            sp = p_start;
+            break;
+        }
+    }
+
+    if (*sp == '\0') {
+        sp = 0;
+        return sp;
+    }
+
+    // Find end of substring
+    while (*sp != '\0') {
+        for (i = 0; i < len; i++) {
+            if (*sp == delimiters[i]) {
+                *sp = '\0';
+                break;
+            }
+        }
+
+        sp++;
+        if (i < len)
+            break;
+    }
+
+    return p_start;
 }

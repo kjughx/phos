@@ -1,24 +1,16 @@
 #ifndef _STRING_H_
 #define _STRING_H_
 
-#include "common.h"
+#include "stdbool.h"
+#include "stddef.h"
 
-/* @brief Convert a character to lowercase
- *
- * @param c: The character to convert
- */
+/* @brief Convert @c to lowercase */
 char to_lower(unsigned char c);
 
-/* @brief Convert a character to uppercase
- *
- * @param c: The character to convert
- */
+/* @brief Convert @c to uppercase */
 char to_upper(unsigned char c);
 
-/* @brief Check if a character is a digit
- *
- * @returns true if digiit
- */
+/* @brief Check if @c is a digit */
 bool is_digit(char c);
 
 /* @brief Convert a character to digit */
@@ -56,5 +48,7 @@ int istrncmp(const char* s1, const char* s2, size_t n);
 
 /* @brief Calculate the length of @str until @terminator, or @max if too long */
 int strnlen_terminator(const char* str, int max, char terminator);
+
+char* strtok(char* str, const char* delimit);
 
 #endif /* _STRING_H_ */
