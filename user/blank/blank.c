@@ -11,6 +11,8 @@ int main(int argc, char** argv) {
 
     free(p);
 
+    print(itoa(8637));
+
     while (p) {
         if (getkey() != 0) {
             print("Key was pressed\n");

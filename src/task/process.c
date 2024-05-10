@@ -95,7 +95,7 @@ static int process_map_elf(struct process* process) {
 
         void* phdr_paddr = elf_phdr_paddr(elf_file, phdr);
         ret = paging_map_to(process->task->page_directory, PAGE_ALIGN_LOWER(phdr->p_vaddr),
-                            PAGE_ALIGN_LOWER(phdr_paddr), PAGE_ALIGN(phdr_paddr + phdr->p_filesz),
+                            PAGE_ALIGN_LOWER(phdr_paddr), PAGE_ALIGN(phdr_paddr + phdr->p_memsz),
                             flags);
         if (ret < 0)
             break;
