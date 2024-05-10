@@ -33,6 +33,8 @@ struct process {
         struct elf_file* elf_file;
     };
     uint32_t size;
+    void* bss;
+    uint32_t bss_size;
     void* stack;
     struct keyboard_buffer {
         char buffer[PHIX_KEYBOARD_BUFFER_SIZE];

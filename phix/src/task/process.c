@@ -89,11 +89,18 @@ static int process_map_elf(struct process* process) {
     struct elf_header* header = elf_header(elf_file);
     for (int i = 0; i < header->e_phnum; i++) {
         struct elf32_phdr* phdr = elf_program_header(header, i);
+        void* phdr_paddr = elf_phdr_paddr(elf_file, phdr);
         uint8_t flags = PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL;
         if (phdr->p_flags & PF_W)
             flags |= PAGING_IS_WRITABLE;
 
-        void* phdr_paddr = elf_phdr_paddr(elf_file, phdr);
+        if (phdr->p_filesz == 0) { /* BSS section */
+            if (!(process->bss = kzalloc(PAGE_ALIGN(phdr->p_memsz))))
+                return -ENOMEM;
+            process->bss_size = phdr->p_memsz;
+            phdr_paddr = process->bss;
+        }
+
         ret = paging_map_to(process->task->page_directory, (void*)PAGE_ALIGN_LOWER(phdr->p_vaddr),
                             (void*)PAGE_ALIGN_LOWER(phdr_paddr),
                             (void*)PAGE_ALIGN(phdr_paddr + phdr->p_memsz), flags);
