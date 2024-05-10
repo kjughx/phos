@@ -23,6 +23,18 @@ getkey:
     pop ebp
     ret
 
+global phos_putchar:function
+; void putchar(char c)
+phos_putchar:
+    push ebp
+    mov ebp, esp
+    mov eax, 3 ; command putchar
+    push dword[ebp+8] ; Variable c
+    int 0x80
+    add esp, 4
+    pop ebp
+    ret
+
 global phos_malloc:function
 ; void* phos_malloc(size_t size)
 phos_malloc:

@@ -1,5 +1,6 @@
 #include "phos.h"
 #include "stdlib.h"
+#include "stdio.h"
 
 int main(int argc, char** argv) {
     print("Hello from C\n");
@@ -12,6 +13,7 @@ int main(int argc, char** argv) {
     free(p);
 
     print(itoa(8637));
+    putchar('A');
 
     while (p) {
         if (getkey() != 0) {

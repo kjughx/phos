@@ -5,6 +5,4 @@
 void* malloc(size_t size);
 void free(void* p);
 
-char* itoa(int i);
-
 #endif /* STDLIB_H_ */
