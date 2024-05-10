@@ -53,4 +53,7 @@ int process_switch(struct process* process);
 /* @brief Load and switch current process to @procees */
 int process_load_switch(const char* filename, struct process** process);
 
+void* process_malloc(struct process* process, size_t size);
+void process_free(struct process* process, void* p);
+
 #endif /* _PROCESS_H_ */

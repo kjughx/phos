@@ -6,6 +6,8 @@ enum Syscalls {
     SYSCALL_PRINT,
     SYSCALL_GETKEY,
     SYSCALL_PUTCHAR,
+    SYSCALL_MALLOC,
+    SYSCALL_FREE,
 };
 
 void isr80h_register_commands();

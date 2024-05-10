@@ -220,3 +220,40 @@ int process_load_switch(const char* filename, struct process** process) {
     process_switch(*process);
     return 0;
 }
+
+static int process_find_free_allocatation_index(struct process* process) {
+    int ret = -ENOMEM;
+    for (int i = 0; i < PHOS_MAX_PROGRAM_ALLOCATIONS; i++) {
+        if (process->allocations[i] == 0)
+            return i;
+    }
+
+    return ret;
+}
+
+void* process_malloc(struct process* process, size_t size) {
+    int index;
+    void* p = kzalloc(size);
+    if (!p)
+        return NULL;
+
+    index = process_find_free_allocatation_index(process);
+    if (index < 0)
+        return NULL;
+
+    process->allocations[index] = p;
+
+    return p;
+}
+
+void process_free(struct process* process, void* p) {
+    for (int i = 0; i < PHOS_MAX_PROGRAM_ALLOCATIONS; i++) {
+        if (process->allocations[i] == p) {
+            process->allocations[i] = NULL;
+            kfree(p);
+            return;
+        }
+    }
+
+    /* TODO: Handle freeing invalid memory */
+}
