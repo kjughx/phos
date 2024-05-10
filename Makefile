@@ -13,7 +13,6 @@ BINS = $(BIN)/boot.bin $(BIN)/kernel.bin
 # kernel.asm.o has to be first to be linked
 OBJS := $(OBJ)/kernel.asm.o
 
-INCS := $(shell find src -name "*.h")
 C_SRCS := $(shell find src -name "*.c")
 ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
 
