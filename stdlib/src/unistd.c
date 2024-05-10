@@ -1,8 +1,8 @@
 #include "unistd.h"
-#include "phos.h"
+#include "phix.h"
 
 int exec(const char* filename) {
-    phos_exec(filename);
+    phix_exec(filename);
 
     return 0;
 }

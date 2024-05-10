@@ -1,11 +1,11 @@
 #include "stdio.h"
-#include "phos.h"
+#include "phix.h"
 #include <stdarg.h>
 
 int getkey() {
     int val;
     do {
-        val = phos_getkey();
+        val = phix_getkey();
     } while (val == 0);
 
     return val;
@@ -58,7 +58,7 @@ char* itoa(int i) {
 }
 
 int putchar(int c) {
-    phos_putchar((char)c);
+    phix_putchar((char)c);
     return 0;
 }
 
@@ -93,16 +93,16 @@ int printf(const char* fmt, ...) {
         switch (*++p) {
         case 'd': {
             ival = va_arg(ap, int);
-            phos_print(itoa(ival));
+            phix_print(itoa(ival));
         } break;
         case 's': {
             sval = va_arg(ap, char*);
-            phos_print(sval);
+            phix_print(sval);
         } break;
         case 'p': {
             ival = va_arg(ap, int);
-            phos_print("0X");
-            phos_print(decimal_to_hex(ival));
+            phix_print("0X");
+            phix_print(decimal_to_hex(ival));
         } break;
         default:
             putchar(*p);

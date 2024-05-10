@@ -1,6 +1,6 @@
 #include "stdlib.h"
-#include "phos.h"
+#include "phix.h"
 
-void* malloc(size_t size) { return phos_malloc(size); }
+void* malloc(size_t size) { return phix_malloc(size); }
 
-void free(void* p) { phos_free(p); }
+void free(void* p) { phix_free(p); }

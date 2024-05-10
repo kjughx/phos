@@ -1,11 +1,11 @@
 #include "shell.h"
-#include "phos.h"
+#include "phix.h"
 #include "stdio.h"
 #include "string.h"
 #include "unistd.h"
 
 int main(void) {
-    printf("PHOS v1.0.0\n");
+    printf("PHIX v1.0.0\n");
     while (1) {
         printf("# > ");
         char buf[1024];
