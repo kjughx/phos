@@ -1,11 +1,11 @@
-#include "isr80h/isr80h.h"
+#include "syscall/syscall.h"
 #include "idt/idt.h"
-#include "isr80h/io.h"
-#include "isr80h/memory.h"
-#include "isr80h/misc.h"
-#include "isr80h/process.h"
+#include "syscall/io.h"
+#include "syscall/memory.h"
+#include "syscall/misc.h"
+#include "syscall/process.h"
 
-void isr80h_register_commands() {
+void syscall_register_commands() {
     syscall_register(SYSCALL_SUM, syscall0_sum);
     syscall_register(SYSCALL_PRINT, syscall1_print);
     syscall_register(SYSCALL_GETKEY, syscall2_getkey);

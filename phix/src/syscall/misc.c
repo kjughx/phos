@@ -1,4 +1,4 @@
-#include "isr80h/misc.h"
+#include "syscall/misc.h"
 #include "common.h"
 #include "idt/idt.h"
 #include "string/string.h"

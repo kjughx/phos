@@ -1,5 +1,5 @@
-#ifndef _ISR80H_H_
-#define _ISR80H_H_
+#ifndef _SYSCALL_H_
+#define _SYSCALL_H_
 
 enum Syscalls {
     SYSCALL_SUM,
@@ -13,6 +13,6 @@ enum Syscalls {
     SYSCALL_GET_FLAGS,
 };
 
-void isr80h_register_commands();
+void syscall_register_commands();
 
-#endif /*_ISR80H_H_ */
+#endif /*_SYSCALL_H_ */

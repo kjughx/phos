@@ -5,7 +5,7 @@
 #include "disk/disk.h"
 #include "fs/file.h"
 #include "idt/idt.h"
-#include "isr80h/isr80h.h"
+#include "syscall/syscall.h"
 #include "keyboard/keyboard.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
@@ -63,7 +63,7 @@ void kernel_main() {
     tss_load(0x28);
 
     /* Setup a kernel paging chunk */
-    kchunk = paging_new_chunk(PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    kchunk = paging_new_chunk(PAGING_IS_WRITABLE | PAGING_IS_PRESENT);
 
     /* Switch to kernel paging chunk */
     paging_switch(kchunk);
@@ -72,7 +72,7 @@ void kernel_main() {
     enable_paging();
 
     /* Register syscalls */
-    isr80h_register_commands();
+    syscall_register_commands();
 
     /* Initialize all keyboards */
     keyboard_init();
