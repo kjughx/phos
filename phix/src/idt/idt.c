@@ -22,8 +22,7 @@ struct idt_desc idt_descriptors[PHIX_TOTAL_INTERRUPTS];
 struct idtr_desc idtr_descriptor;
 
 extern void idt_load(struct idtr_desc* p);
-extern void no_interrupt();
-extern void isr80h_wrapper();
+extern void syscall_wrapper();
 
 static INTERRUPT_CB_FUNCTION interrupt_callbacks[PHIX_TOTAL_INTERRUPTS];
 static SYSCALL syscalls[PHIX_MAX_SYSCALLS];
@@ -61,7 +60,7 @@ void syscall_register(int command_id, SYSCALL command) {
     syscalls[command_id] = command;
 }
 
-void* isr80h_handle_command(int command, struct interrupt_frame* frame) {
+void* syscall_handle_command(int command, struct interrupt_frame* frame) {
     /* Invalid command */
     if (command < 0 || command >= PHIX_MAX_SYSCALLS)
         return NULL;
@@ -73,18 +72,17 @@ void* isr80h_handle_command(int command, struct interrupt_frame* frame) {
     return func(frame);
 }
 
-void* isr80h_handler(int command, struct interrupt_frame* frame) {
+void* syscall_handler(int command, struct interrupt_frame* frame) {
     void* ret = NULL;
     kernel_page();
     task_current_save_state(frame);
-    ret = isr80h_handle_command(command, frame);
+    ret = syscall_handle_command(command, frame);
     task_page();
     ACK_INTR();
     return ret;
 }
 
 void exception_handler(struct interrupt_frame* frame) {
-    printk("program crashed\n");
     process_terminate(task_current()->process);
     task_switch_next();
 }
@@ -113,7 +111,7 @@ void idt_init() {
         idt_register_intr_cb(i, exception_handler);
     }
 
-    idt_set(0x80, isr80h_wrapper);
+    idt_set(0x80, syscall_wrapper);
 
     idt_load(&idtr_descriptor);
 }

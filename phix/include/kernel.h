@@ -8,7 +8,7 @@
 
 #define panic(msg, ...)                                                                            \
     do {                                                                                           \
-        printk("PANIC: %s: " msg "\n", __FILE__, ##__VA_ARGS__);                                   \
+        printk("PANIC: [%s:%d]: " msg "\n", __func__, __LINE__, ##__VA_ARGS__);                    \
         asm volatile("hlt");                                                                       \
     } while (0);
 

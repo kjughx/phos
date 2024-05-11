@@ -7,4 +7,6 @@
 void* malloc(size_t size);
 void free(void* p);
 
+[[noreturn]] void exit(int status);
+
 #endif /* STDLIB_H_ */

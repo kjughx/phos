@@ -1,6 +1,6 @@
 section .asm
 
-extern isr80h_handler
+extern syscall_handler
 extern no_interrupt_handler
 extern interrupt_handler
 
@@ -8,7 +8,7 @@ global idt_load
 global no_interrupt
 global enable_interrupts
 global disable_interrupts
-global isr80h_wrapper
+global syscall_wrapper
 global interrupt_pointer_table
 
 enable_interrupts:
@@ -28,14 +28,6 @@ idt_load:
 
     pop ebp
     ret
-
-no_interrupt:
-    pushad
-
-    call no_interrupt_handler
-
-    popad
-    iret
 
 %macro interrupt 1
     global int%1
@@ -66,7 +58,7 @@ no_interrupt:
 %assign i i+1
 %endrep
 
-isr80h_wrapper:
+syscall_wrapper:
     cli
     ; INTERRUPT FRAME START ;
     ; Pushed to us by processor
@@ -87,7 +79,7 @@ isr80h_wrapper:
     ; Syscall number to the stack for the isr80h_handler
     push eax
 
-    call isr80h_handler
+    call syscall_handler
     mov dword[tmp_res], eax
 
     add esp, 8 ; Equivalent to popping eax and esp

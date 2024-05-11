@@ -317,9 +317,9 @@ void process_terminate(struct process* process) {
         kfree(process->allocations[i].p);
     }
 
+    process_list_remove(process);
     process_free_data(process);
     kfree(process->stack);
     task_free(process->task);
-    process_list_remove(process);
     kfree(process);
 }

@@ -1,5 +1,6 @@
-#ifndef _phix_H_
-#define _phix_H_
+#ifndef _PHIX_H_
+#define _PHIX_H_
+
 #include "stddef.h"
 #include "stdint.h"
 
@@ -9,6 +10,8 @@ void* phix_malloc(size_t size);
 void phix_free(void* p);
 void phix_putchar(char c);
 void phix_exec(const char* filename);
+[[noreturn]] void phix_exit(int status_code);
+
 void* phix_get_paddr(void* vaddr);
 uint8_t phix_get_flags(void* vaddr);
 

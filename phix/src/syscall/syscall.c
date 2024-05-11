@@ -1,18 +1,17 @@
 #include "syscall/syscall.h"
 #include "idt/idt.h"
-#include "syscall/io.h"
-#include "syscall/memory.h"
-#include "syscall/misc.h"
-#include "syscall/process.h"
 
 void syscall_register_commands() {
-    syscall_register(SYSCALL_SUM, syscall0_sum);
-    syscall_register(SYSCALL_PRINT, syscall1_print);
-    syscall_register(SYSCALL_GETKEY, syscall2_getkey);
-    syscall_register(SYSCALL_PUTCHAR, syscall3_putchar);
-    syscall_register(SYSCALL_MALLOC, syscall4_malloc);
-    syscall_register(SYSCALL_FREE, syscall5_free);
-    syscall_register(SYSCALL_EXEC, syscall6_process_load_start);
-    syscall_register(SYSCALL_GET_PADDR, syscall7_get_paddr);
-    syscall_register(SYSCALL_GET_FLAGS, syscall8_get_flags);
+    syscall_register(SYSCALL_PRINT, syscall0_print);
+    syscall_register(SYSCALL_GETKEY, syscall1_getkey);
+    syscall_register(SYSCALL_PUTCHAR, syscall2_putchar);
+    syscall_register(SYSCALL_MALLOC, syscall3_malloc);
+    syscall_register(SYSCALL_FREE, syscall4_free);
+    syscall_register(SYSCALL_EXEC, syscall5_exec);
+    syscall_register(SYSCALL_EXIT, syscall6_exit);
+
+#ifdef DEBUG
+    syscall_register(SYSCALL_GET_PADDR, syscall1022_get_paddr);
+    syscall_register(SYSCALL_GET_FLAGS, syscall1023_get_flags);
+#endif
 }
