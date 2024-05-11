@@ -232,20 +232,40 @@ static int fat16_get_root_directory(struct disk* disk, struct fat_private* priva
     directory->ending_sector_pos = root_dir_sector_pos + total_sectors;
 
 out:
+    if (ret < 0)
+        kfree(dir);
+
     return ret;
+}
+
+static void fat16_to_proper_string(char** out, const char* in, size_t size) {
+    size_t i = 0;
+    while(*in && *in != 0x20) {
+        **out = *in;
+        (*out)++;
+        in++;
+        i++;
+
+        if (i == size) {
+            **out = 0x00;
+            return;
+        }
+    }
+
+    if (*in == 0x20)
+        **out = 0x00;
 }
 
 static void fat16_get_full_relative_filename(struct fat_directory_item* item, char* out,
                                              int max_len) {
     memset(out, 0, max_len);
     char* tmp = out;
-    strcpy_strip(tmp, (const char*)item->filename);
+    fat16_to_proper_string(&tmp, (const char*)item->filename, sizeof(item->filename));
 
     /* If the item has an extension */
     if (item->ext[0] && item->ext[0] != 0x20) {
-        tmp += strlen(tmp); /* Advance to \0 */
         *tmp++ = '.';
-        strcpy_strip(tmp, (const char*)item->ext);
+        fat16_to_proper_string(&tmp, (const char*)item->ext, sizeof(item->ext));
     }
 }
 
