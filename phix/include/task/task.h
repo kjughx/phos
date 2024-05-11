@@ -43,8 +43,10 @@ struct task {
 struct task* task_new(struct process* process);
 struct task* task_current();
 struct task* task_get_next();
+
 void task_free(struct task* task);
 int task_switch(struct task* task);
+void task_switch_next();
 int task_page();
 int task_page_task(struct task* task);
 

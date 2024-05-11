@@ -6,11 +6,11 @@
 #define VGA_WIDTH 80
 #define VGA_HEIGHT 20
 
-/* @brief Halt the system after printing @message */
-static inline void panic(const char* message) {
-    printk("Kernel panic: %s\n", message);
-    asm volatile("hlt");
-}
+#define panic(msg, ...)                                                                            \
+    do {                                                                                           \
+        printk("PANIC: %s: " msg "\n", __FILE__, ##__VA_ARGS__);                                   \
+        asm volatile("hlt");                                                                       \
+    } while (0);
 
 /* @brief Restore the kernel registers */
 void kernel_registers();

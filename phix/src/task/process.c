@@ -130,7 +130,7 @@ int process_map_memory(struct process* process) {
         ret = process_map_binary(process);
     } break;
     default:
-        panic("process_map_memory: Unexpected filetype");
+        panic("Unexpected filetype");
     }
     if (ret < 0)
         return ret;
@@ -270,7 +270,7 @@ void process_free(struct process* process, void* p) {
     for (int i = 0; i < PHIX_MAX_PROGRAM_ALLOCATIONS; i++) {
         if (process->allocations[i].p == p) {
             paging_map_to(process->task->page_directory, p, 0,
-                                (void*)PAGE_ALIGN(p + process->allocations[i].size), 0);
+                          (void*)PAGE_ALIGN(p + process->allocations[i].size), 0);
             process->allocations[i].p = NULL;
             process->allocations[i].size = 0;
             kfree(p);
@@ -279,4 +279,47 @@ void process_free(struct process* process, void* p) {
     }
 
     /* TODO: Handle freeing invalid memory */
+}
+
+static void process_free_data(struct process* process) {
+    switch (process->filetype) {
+    case PROCESS_FILETYPE_ELF: {
+        elf_close(process->elf_file);
+        kfree(process->bss.p);
+    } break;
+    case PROCESS_FILETYPE_BINARY: {
+        kfree(process->p);
+    } break;
+    default:
+        panic("Invalid filetype");
+    }
+}
+
+void process_switch_to_any() {
+    for (int i = 0; i < PHIX_MAX_PROCESSES; i++) {
+        if (processes[i]) {
+            process_switch(processes[i]);
+            return;
+        }
+    }
+
+    panic("No process to switch to")
+}
+
+static void process_list_remove(struct process* process) {
+    processes[process->id] = 0x0;
+    if (current_process == process)
+        process_switch_to_any();
+}
+
+void process_terminate(struct process* process) {
+    for (int i = 0; i < PHIX_MAX_PROGRAM_ALLOCATIONS; i++) {
+        kfree(process->allocations[i].p);
+    }
+
+    process_free_data(process);
+    kfree(process->stack);
+    task_free(process->task);
+    process_list_remove(process);
+    kfree(process);
 }

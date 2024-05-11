@@ -74,7 +74,7 @@ void task_save_state(struct task* task, struct interrupt_frame* frame) {
 void task_current_save_state(struct interrupt_frame* frame) {
     struct task* task;
     if (!(task = task_current()))
-        panic("No current task to save\n");
+        panic("No current task to save");
 
     task_save_state(task, frame);
 }
@@ -93,7 +93,7 @@ int task_page_task(struct task* task) {
 
 void task_run_first_task() {
     if (!current_task)
-        panic("task_run_first_check: No current_task exists\n");
+        panic("No current_task exists");
 
     task_switch(task_head);
     task_return(&task_head->registers);
@@ -147,6 +147,15 @@ struct task* task_get_next() {
         return task_head;
 
     return current_task->next;
+}
+
+void task_switch_next() {
+    struct task* next = task_get_next();
+    if (!next)
+        panic("No more tasks");
+
+    task_switch(next);
+    task_return(&next->registers);
 }
 
 static void task_list_remove(struct task* task) {

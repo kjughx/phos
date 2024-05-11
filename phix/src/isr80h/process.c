@@ -24,6 +24,6 @@ void* syscall6_process_load_start(struct interrupt_frame* frame) {
     task_return(&new_process->task->registers);
     /* Should not fall through */
 
-    panic("process_load_start: SHOULD NEVER HAPPEN");
+    panic();
     return NULL;
 }

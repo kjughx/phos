@@ -7,6 +7,7 @@
 #include "memory/paging/paging.h"
 #include "status.h"
 #include "string/string.h"
+#include "task/process.h"
 #include "task/task.h"
 
 #define ACK_INTR()                                                                                 \
@@ -82,6 +83,12 @@ void* isr80h_handler(int command, struct interrupt_frame* frame) {
     return ret;
 }
 
+void exception_handler(struct interrupt_frame* frame) {
+    printk("program crashed\n");
+    process_terminate(task_current()->process);
+    task_switch_next();
+}
+
 void idt_set(int i, void* addr) {
 
     struct idt_desc* desc = &idt_descriptors[i];
@@ -101,8 +108,12 @@ void idt_init() {
         idt_set(i, interrupt_pointer_table[i]);
     }
 
+    /* All the exceptions */
+    for (int i = 0; i < 20; i++) {
+        idt_register_intr_cb(i, exception_handler);
+    }
+
     idt_set(0x80, isr80h_wrapper);
-    idt_set(14, page_fault_intr_cb);
 
     idt_load(&idtr_descriptor);
 }
