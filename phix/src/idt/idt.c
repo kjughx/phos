@@ -87,6 +87,11 @@ void exception_handler(struct interrupt_frame* frame) {
     task_switch_next();
 }
 
+void idt_timer()  {
+    ACK_INTR();
+    task_switch_next();
+}
+
 void idt_set(int i, void* addr) {
 
     struct idt_desc* desc = &idt_descriptors[i];
@@ -111,6 +116,7 @@ void idt_init() {
         idt_register_intr_cb(i, exception_handler);
     }
 
+    idt_set(0x20, idt_timer);
     idt_set(0x80, syscall_wrapper);
 
     idt_load(&idtr_descriptor);
