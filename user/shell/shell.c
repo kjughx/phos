@@ -6,7 +6,6 @@
 #include "stdlib.h"
 
 int main(void) {
-    printf("PHIX v1.0.0\n");
     while (1) {
         printf("# > ");
         char buf[1024];

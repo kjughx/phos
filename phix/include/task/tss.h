@@ -30,6 +30,7 @@ struct tss {
     uint32_t iopb;
 } __attribute((packed));
 
-void tss_load(int tss_segment);
+void tss_init();
+void tss_load(int segment);
 
 #endif /* _TSS_H_ */

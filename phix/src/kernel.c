@@ -5,28 +5,24 @@
 #include "disk/disk.h"
 #include "fs/file.h"
 #include "idt/idt.h"
-#include "syscall/syscall.h"
 #include "keyboard/keyboard.h"
 #include "memory/heap/kheap.h"
 #include "memory/memory.h"
 #include "memory/paging/paging.h"
 #include "string/string.h"
+#include "syscall/syscall.h"
 #include "task/process.h"
 #include "task/task.h"
 #include "task/tss.h"
 
-static struct paging_chunk* kchunk = NULL;
-static struct tss tss;
+#define log_call(x, y)                                                                             \
+    do {                                                                                           \
+        printk(x "...");                                                                           \
+        (y);                                                                                       \
+        printk("done\n");                                                                          \
+    } while (0);
 
-struct gdt gdt_real[PHIX_TOTAL_GDT_SEGMENTS];
-struct gdt_structured gdt_structured[PHIX_TOTAL_GDT_SEGMENTS] = {
-    {.base = 0x00, .limit = 0x00, .type = 0x00},                 /* NULL Segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A},           /* Kernel code segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92},           /* Kernel data segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xf8},           /* User code segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0xf2},           /* User data segment */
-    {.base = (uint32_t)&tss, .limit = sizeof(tss), .type = 0xE9} /* TSS Segment  */
-};
+static struct paging_chunk* kchunk = NULL;
 
 void kernel_page() {
     kernel_registers();
@@ -35,32 +31,25 @@ void kernel_page() {
 
 void kernel_main() {
     terminal_init();
+    printk("PHOS v0.0.1\n");
 
-    memset(gdt_real, 0, sizeof(gdt_real));
-    gdt_structured_to_gdt(gdt_real, gdt_structured, PHIX_TOTAL_GDT_SEGMENTS);
-
-    /* Load the GDT */
-    gdt_load(gdt_real, sizeof(gdt_real));
+    /* Initialize the GDT */
+    log_call("Initializing the GDT", gdt_init());
 
     /* Initialize the kernel heap */
-    kheap_init();
+    log_call("Initializing the kheap", kheap_init());
 
     /* Initialize the file systems */
-    fs_init();
+    log_call("Initializing the filsystems", fs_init());
 
     /* Search and initialize disks */
-    disk_search_and_init();
+    log_call("Initializing the disks", disk_search_and_init());
 
     /* Initialize the interrupt desciptor table */
-    idt_init();
+    log_call("Initializing the IDT", idt_init());
 
     /* Setup the TSS */
-    memset(&tss, 0, sizeof(tss));
-    tss.esp0 = 0x600000;
-    tss.ss0 = KERNEL_DATA_SELECTOR;
-
-    /* Load the TSS */
-    tss_load(0x28);
+    log_call("Initializing the TSS", tss_init());
 
     /* Setup a kernel paging chunk */
     kchunk = paging_new_chunk(PAGING_IS_WRITABLE | PAGING_IS_PRESENT);
@@ -72,10 +61,10 @@ void kernel_main() {
     enable_paging();
 
     /* Register syscalls */
-    syscall_register_commands();
+    log_call("Registering syscalls", syscall_register_commands());
 
     /* Initialize all keyboards */
-    keyboard_init();
+    log_call("Initializing keyboards", keyboard_init());
 
     /* Enable system interrupts*/
     // enable_interrupts();

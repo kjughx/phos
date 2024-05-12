@@ -93,7 +93,6 @@ void idt_timer()  {
 }
 
 void idt_set(int i, void* addr) {
-
     struct idt_desc* desc = &idt_descriptors[i];
     desc->offset_1 = (uint32_t)addr & 0x0000ffff;
     desc->selector = KERNEL_CODE_SELECTOR;
@@ -116,7 +115,7 @@ void idt_init() {
         idt_register_intr_cb(i, exception_handler);
     }
 
-    idt_set(0x20, idt_timer);
+    // idt_set(0x20, idt_timer);
     idt_set(0x80, syscall_wrapper);
 
     idt_load(&idtr_descriptor);
