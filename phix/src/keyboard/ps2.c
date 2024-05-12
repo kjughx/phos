@@ -4,6 +4,7 @@
 #include "io/io.h"
 #include "kernel.h"
 #include "keyboard/keyboard.h"
+#include "string/string.h"
 #include "task/task.h"
 
 int ps2_keyboard_init();
@@ -33,10 +34,9 @@ static uint8_t ps2_scan_set_one[] = {
 #define PS2_SCAN_SET_SIZE sizeof(ps2_scan_set_one)
 
 uint8_t ps2_keyboard_scancode_to_char(uint8_t scan_code) {
-    if (scan_code > PS2_SCAN_SET_SIZE)
+    if (scan_code >= PS2_SCAN_SET_SIZE)
         return 0;
 
-    /* TODO: Handle modifiers */
     return ps2_scan_set_one[scan_code];
 }
 
@@ -49,8 +49,14 @@ void ps2_keyboard_handle_interrupt() {
     scan_code = insb(KEYBOARD_INPUT_PORT);
     insb(KEYBOARD_INPUT_PORT); /* Rogue byte */
 
+    if (((scan_code & ~PS2_KEY_RELEASED) == LSHIFT) || ((scan_code & ~PS2_KEY_RELEASED) == RSHIFT))
+        keyboard_shift(scan_code & PS2_KEY_RELEASED);
+
     if (scan_code & PS2_KEY_RELEASED)
         return;
+
+    if (scan_code == CAPSLOCK)
+        keyboard_capslock();
 
     if ((character = ps2_keyboard_scancode_to_char(scan_code)))
         keyboard_push(character);

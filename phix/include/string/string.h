@@ -37,6 +37,8 @@ char* sto_upper(char* str);
  */
 bool is_digit(char c);
 
+bool isalpha(char c);
+
 /* @brief Convert a character to digit */
 int to_digit(char c);
 

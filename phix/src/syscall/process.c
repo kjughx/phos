@@ -16,7 +16,7 @@ void* syscall5_exec(struct interrupt_frame* frame) {
     if (ret < 0)
         return ERROR(ret);
 
-    ret = process_load_switch(sto_lower(filename), &new_process);
+    ret = process_load_switch(filename, &new_process);
     if (ret < 0)
         return ERROR(ret);
 

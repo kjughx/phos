@@ -12,6 +12,8 @@ uint16_t terminal_make_char(char c, char color) { return (color << 8 | c); }
 
 bool is_digit(char c) { return (c >= 48 && c <= 57); }
 
+bool isalpha(char c) { return (c >= 97 && c <= 122) || (c >= 65 && c <= 90); }
+
 char to_lower(unsigned char c) {
     if (c >= 65 && c <= 90)
         return c + 32;
@@ -181,7 +183,7 @@ void terminal_init() {
     video_mem = (uint16_t*)(0xB8000);
     terminal_row = 0;
     terminal_col = 0;
-    memset(video_mem, 0, VGA_HEIGHT*VGA_WIDTH*sizeof(uint16_t));
+    memset(video_mem, 0, VGA_HEIGHT * VGA_WIDTH * sizeof(uint16_t));
 }
 
 void print(const char* str) {
@@ -196,6 +198,9 @@ void putchar(char c) { terminal_writechar(c, 15); }
 static char* decimal_to_hex(unsigned int decimal) {
     static char hex[12];
     int j = 11;
+
+    if (decimal == 0)
+        hex[--j] = '0';
 
     while (decimal != 0) {
         int remainder = decimal % 16;
@@ -258,6 +263,11 @@ int printk(const char* fmt, ...) {
             print(sval);
         } break;
         case 'p': {
+            ival = va_arg(ap, uint32_t);
+            print("0X");
+            print(decimal_to_hex(ival));
+        } break;
+        case 'x': {
             ival = va_arg(ap, int);
             print("0X");
             print(decimal_to_hex(ival));

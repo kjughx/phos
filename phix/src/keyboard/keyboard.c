@@ -2,6 +2,7 @@
 #include "common.h"
 #include "keyboard/ps2.h"
 #include "status.h"
+#include "string/string.h"
 #include "task/process.h"
 #include "task/task.h"
 
@@ -46,8 +47,27 @@ void keyboard_push(char c) {
     if (c == 0x00)
         return;
 
+    if (!process->keyboard.caps && isalpha(c))
+        c += 32;
+
     process->keyboard.buffer[keyboard_write_index(process)] = c;
     process->keyboard.writer++;
+}
+
+void keyboard_shift(bool released) {
+    struct process* process = process_current();
+    if (!process)
+        return;
+
+    process->keyboard.caps = !released;
+}
+
+void keyboard_capslock() {
+    struct process* process = process_current();
+    if (!process)
+        return;
+
+    process->keyboard.caps ^= 1;
 }
 
 char keyboard_pop() {

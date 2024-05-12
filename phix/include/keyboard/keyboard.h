@@ -1,6 +1,7 @@
 #ifndef _KEYBOARD_H_
 #define _KEYBOARD_H_
 
+#include "common.h"
 #define ISR_KEYBOARD_INTERRUPT 0x21
 #define KEYBOARD_INPUT_PORT 0x60
 
@@ -16,6 +17,8 @@ struct keyboard {
 
 void keyboard_init();
 void keyboard_backspace(struct process* process);
+void keyboard_shift(bool released);
+void keyboard_capslock();
 void keyboard_push(char c);
 char keyboard_pop();
 

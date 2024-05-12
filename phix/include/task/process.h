@@ -47,6 +47,7 @@ struct process {
         char buffer[PHIX_KEYBOARD_BUFFER_SIZE];
         int reader;
         int writer;
+        bool caps;
     } keyboard;
     void* vmem;
 };
