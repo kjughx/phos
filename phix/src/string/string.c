@@ -1,6 +1,7 @@
 #include "string/string.h"
 #include "common.h"
 #include "kernel.h"
+#include "memory/memory.h"
 #include <stdarg.h>
 
 uint16_t* video_mem = 0;
@@ -180,11 +181,7 @@ void terminal_init() {
     video_mem = (uint16_t*)(0xB8000);
     terminal_row = 0;
     terminal_col = 0;
-    for (int y = 0; y < VGA_HEIGHT; y++) {
-        for (int x = 0; x < VGA_WIDTH; x++) {
-            terminal_putchar(x, y, ' ', 0);
-        }
-    }
+    memset(video_mem, 0, VGA_HEIGHT*VGA_WIDTH*sizeof(uint16_t));
 }
 
 void print(const char* str) {

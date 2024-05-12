@@ -48,6 +48,7 @@ struct process {
         int reader;
         int writer;
     } keyboard;
+    void* vmem;
 };
 
 /* @brief Get the current process */

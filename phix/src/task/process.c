@@ -118,6 +118,24 @@ static int process_map_binary(struct process* process) {
                          PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
 }
 
+static void process_free_data(struct process* process) {
+    switch (process->filetype) {
+    case PROCESS_FILETYPE_ELF: {
+        elf_close(process->elf_file);
+        kfree(process->bss.p);
+    } break;
+    case PROCESS_FILETYPE_BINARY: {
+        kfree(process->p);
+    } break;
+    default:
+        panic("Invalid filetype");
+    }
+
+    kfree(process->vmem);
+    kfree(process->stack);
+    task_free(process->task);
+}
+
 int process_map_memory(struct process* process) {
     int ret = 0;
 
@@ -133,13 +151,27 @@ int process_map_memory(struct process* process) {
         panic("Unexpected filetype");
     }
     if (ret < 0)
-        return ret;
+        goto err;
+
+    if (!(process->vmem = kzalloc(VGA_HEIGHT * VGA_WIDTH * sizeof(uint16_t)))) {
+        ret = -ENOMEM;
+        goto err;
+    }
 
     /* Map the stack */
-    return paging_map_to(process->task->page_directory,
-                         (void*)PHIX_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack,
-                         (void*)PAGE_ALIGN(process->stack + PHIX_USER_PROGRAM_STACK_SIZE),
-                         PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+    ret = paging_map_to(process->task->page_directory,
+                        (void*)PHIX_PROGRAM_VIRTUAL_STACK_ADDRESS_END, process->stack,
+                        (void*)PAGE_ALIGN(process->stack + PHIX_USER_PROGRAM_STACK_SIZE),
+                        PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+    if (ret < 0)
+        goto err;
+
+    return 0;
+
+err:
+    process_free_data(process);
+
+    return ret;
 }
 
 static int process_load_for_slot(const char* filename, struct process** process, int process_slot) {
@@ -217,6 +249,14 @@ int process_load(const char* filename, struct process** process) {
 int process_switch(struct process* process) {
     current_process = process;
 
+    /* Copy the process vmem buffer to physical vmem */
+    memcpy((void*)0xB8000, process->vmem, VGA_HEIGHT * VGA_WIDTH * sizeof(uint16_t));
+
+    /* Map the process vmem to physical vmem */
+    paging_map_to(process->task->page_directory, process->vmem, (void*)0xB8000,
+                  (void*)0xB8000 + VGA_HEIGHT * VGA_WIDTH * sizeof(uint16_t),
+                  PAGING_IS_PRESENT | PAGING_IS_WRITABLE | PAGING_ACCESS_FROM_ALL);
+
     return 0;
 }
 
@@ -281,20 +321,6 @@ void process_free(struct process* process, void* p) {
     /* TODO: Handle freeing invalid memory */
 }
 
-static void process_free_data(struct process* process) {
-    switch (process->filetype) {
-    case PROCESS_FILETYPE_ELF: {
-        elf_close(process->elf_file);
-        kfree(process->bss.p);
-    } break;
-    case PROCESS_FILETYPE_BINARY: {
-        kfree(process->p);
-    } break;
-    default:
-        panic("Invalid filetype");
-    }
-}
-
 void process_switch_to_any() {
     for (int i = 0; i < PHIX_MAX_PROCESSES; i++) {
         if (processes[i]) {
@@ -319,7 +345,5 @@ void process_terminate(struct process* process) {
 
     process_list_remove(process);
     process_free_data(process);
-    kfree(process->stack);
-    task_free(process->task);
     kfree(process);
 }
