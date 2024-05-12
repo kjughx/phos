@@ -1,7 +1,7 @@
 #include "string.h"
 #include "stdbool.h"
-#include "stdlib.h"
 #include "stdio.h"
+#include "stdlib.h"
 
 bool is_digit(char c) { return (c >= 48 && c <= 57); }
 
@@ -113,7 +113,6 @@ int istrncmp(const char* s1, const char* s2, size_t n) {
 
     return 0;
 }
-
 
 char* sp = NULL;
 char* strtok(char* str, const char* delimiters) {

@@ -240,7 +240,7 @@ out:
 
 static void fat16_to_proper_string(char** out, const char* in, size_t size) {
     size_t i = 0;
-    while(*in && *in != 0x20) {
+    while (*in && *in != 0x20) {
         **out = *in;
         (*out)++;
         in++;

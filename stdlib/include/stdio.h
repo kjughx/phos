@@ -1,8 +1,8 @@
 #ifndef _STDIO_H_
 #define _STDIO_H_
 
-#include "stddef.h"
 #include "stdbool.h"
+#include "stddef.h"
 
 char* itoa(int i);
 int putchar(int c);

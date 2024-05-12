@@ -6,6 +6,5 @@
 int main(int argc, char** argv) {
     printf("hello from %s\n", __FILE__);
 
-
     return 0;
 }

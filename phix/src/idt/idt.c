@@ -87,7 +87,7 @@ void exception_handler(struct interrupt_frame* frame) {
     task_switch_next();
 }
 
-void idt_timer()  {
+void idt_timer() {
     ACK_INTR();
     task_switch_next();
 }

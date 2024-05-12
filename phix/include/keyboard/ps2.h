@@ -11,7 +11,6 @@ enum Modifiers {
     CAPSLOCK = 0x3A,
 };
 
-struct keyboard*
-ps2_init();
+struct keyboard* ps2_init();
 
 #endif /* _PS2_KEYBOARD_H_ */

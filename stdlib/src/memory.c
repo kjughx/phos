@@ -33,10 +33,6 @@ void* memcpy(void* dst, void* src, size_t size) {
     return dst;
 }
 
-void* get_paddr(void* vaddr) {
-    return phix_get_paddr(vaddr);
-}
+void* get_paddr(void* vaddr) { return phix_get_paddr(vaddr); }
 
-uint8_t get_flags(void* vaddr) {
-    return phix_get_flags(vaddr);
-}
+uint8_t get_flags(void* vaddr) { return phix_get_flags(vaddr); }

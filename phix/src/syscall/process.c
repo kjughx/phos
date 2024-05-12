@@ -1,9 +1,9 @@
-#include "syscall/syscall.h"
+#include "task/process.h"
 #include "config.h"
 #include "idt/idt.h"
 #include "kernel.h"
 #include "string/string.h"
-#include "task/process.h"
+#include "syscall/syscall.h"
 #include "task/task.h"
 
 void* syscall5_exec(struct interrupt_frame* frame) {

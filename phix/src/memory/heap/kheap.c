@@ -1,8 +1,8 @@
 #include "memory/heap/kheap.h"
 #include "config.h"
+#include "kernel.h"
 #include "memory/heap/heap.h"
 #include "memory/memory.h"
-#include "kernel.h"
 
 static struct heap kernel_heap;
 static struct heap_table kernel_heap_table;

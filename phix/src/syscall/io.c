@@ -1,8 +1,8 @@
-#include "syscall/syscall.h"
 #include "common.h"
 #include "idt/idt.h"
 #include "keyboard/keyboard.h"
 #include "string/string.h"
+#include "syscall/syscall.h"
 #include "task/task.h"
 
 void* syscall0_print(struct interrupt_frame* frame) {

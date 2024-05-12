@@ -138,24 +138,24 @@ void* paging_get_paddr(pte_t* directory, void* vaddr) {
     int ret = 0;
     pte_t directory_index = 0;
     pte_t table_index = 0;
-    if ((ret = paging_get_indexes((void*)PAGE_ALIGN_LOWER(vaddr), &directory_index, &table_index)) < 0)
+    if ((ret = paging_get_indexes((void*)PAGE_ALIGN_LOWER(vaddr), &directory_index, &table_index)) <
+        0)
         return NULL;
 
     pte_t* table = (pte_t*)(directory[directory_index] & 0xfffff000);
     return (void*)(table[table_index] & 0xfffff000) + ((pte_t)vaddr % PAGING_PAGE_SIZE);
 }
 
-int paging_get_flags(pte_t* directory, void*vaddr) {
+int paging_get_flags(pte_t* directory, void* vaddr) {
     int ret = 0;
     pte_t directory_index = 0;
     pte_t table_index = 0;
-    if ((ret = paging_get_indexes((void*)PAGE_ALIGN_LOWER(vaddr), &directory_index, &table_index)) < 0)
+    if ((ret = paging_get_indexes((void*)PAGE_ALIGN_LOWER(vaddr), &directory_index, &table_index)) <
+        0)
         return 0;
 
     pte_t* table = (pte_t*)(directory[directory_index] & 0xfffff000);
     return (int)(table[table_index] & 0x00000fff);
 }
 
-void page_fault_intr_cb(struct interrupt_frame* frame) {
-    panic("PAGE FAULT\n");
-}
+void page_fault_intr_cb(struct interrupt_frame* frame) { panic("PAGE FAULT\n"); }
