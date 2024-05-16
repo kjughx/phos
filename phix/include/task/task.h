@@ -25,7 +25,7 @@ struct registers {
 struct process;
 struct task {
     /* Page directory of the task */
-    struct paging_chunk* page_directory;
+    pgd_t* page_directory;
 
     /* Registers of the task when it's not running */
     struct registers registers;

@@ -22,11 +22,11 @@
         printk("done\n");                                                                          \
     } while (0);
 
-static struct paging_chunk* kchunk = NULL;
+static pgd_t* kernel_page_dir = NULL;
 
 void kernel_page() {
     kernel_registers();
-    paging_switch(kchunk);
+    paging_switch(kernel_page_dir);
 }
 
 void kernel_main() {
@@ -52,10 +52,10 @@ void kernel_main() {
     log_call("Initializing the TSS", tss_init());
 
     /* Setup a kernel paging chunk */
-    kchunk = paging_new_chunk(PAGING_IS_WRITABLE | PAGING_IS_PRESENT);
+    kernel_page_dir = paging_new_directory(PAGING_IS_WRITABLE | PAGING_IS_PRESENT);
 
     /* Switch to kernel paging chunk */
-    paging_switch(kchunk);
+    paging_switch(kernel_page_dir);
 
     /* Enable paging */
     enable_paging();
