@@ -9,6 +9,9 @@
 #include "task/process.h"
 #include <memory/heap/kheap.h>
 
+/* Idle task for when there are no runnable tasks left */
+struct task* idle_task;
+
 /* Currently running task */
 struct task* current_task;
 
@@ -17,6 +20,39 @@ struct task* task_tail = NULL;
 struct task* task_head = NULL;
 
 struct task* task_current() { return current_task; }
+
+static int create_idle_task() {
+    idle_task = kzalloc(sizeof(struct task));
+
+    if (!idle_task)
+        panic("Failed to create idle task");
+
+    if (!(idle_task->process = kzalloc(sizeof(struct process))))
+        panic("Failed to create idle process");
+
+    idle_task->process->p = "þë"; /* 0xfe 0xeb: jmp $ */
+    idle_task->process->size = 2;
+    idle_task->process->filetype = PROCESS_FILETYPE_BINARY;
+
+    if (!(idle_task->page_directory =
+              paging_new_directory(PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL)))
+        panic("Failed to allocate a page directory for idle_task");
+
+    if (paging_map_to(idle_task->page_directory, (void*)PHIX_PROGRAM_VIRTUAL_ADDRESS,
+                      idle_task->process->p,
+                      (void*)PAGE_ALIGN(idle_task->process->p + idle_task->process->size),
+                      PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL) < 0)
+        panic("Failed to map idle_task page");
+
+    idle_task->registers.ip = PHIX_PROGRAM_VIRTUAL_ADDRESS;
+    idle_task->registers.ss = USER_DATA_SEGMENT;
+    idle_task->registers.cs = USER_CODE_SEGMENT;
+    idle_task->registers.esp = PHIX_PROGRAM_VIRTUAL_STACK_ADDRESS_START;
+
+    current_task = idle_task;
+    task_head = idle_task;
+    task_tail = idle_task;
+}
 
 int copy_string_from_task(struct task* task, void* virtual, void* phys, int max) {
     int ret = 0;
@@ -29,7 +65,7 @@ int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
     if (!(tmp = kzalloc(max)))
         return -ENOMEM;
 
-    if ((ret = paging_get(task->page_directory->directory_entry, tmp, &old_directory)) < 0)
+    if ((ret = paging_get(task->page_directory, tmp, &old_directory)) < 0)
         return ret;
 
     /* Map tmp -> tmp for the task */
@@ -39,7 +75,7 @@ int copy_string_from_task(struct task* task, void* virtual, void* phys, int max)
     strncpy(tmp, virtual, max);
     kernel_page();
 
-    if ((ret = paging_set(task->page_directory->directory_entry, tmp, old_directory)) < 0)
+    if ((ret = paging_set(task->page_directory, tmp, old_directory)) < 0)
         goto out;
 
     strncpy(phys, tmp, max);
@@ -115,8 +151,9 @@ int task_page_task(struct task* task) {
 }
 
 void task_run_first_task() {
-    if (!current_task)
-        panic("No current_task exists");
+    /* Add an idle task for when there are no more tasks left */
+    if (!create_idle_task())
+        panic("Failed to create idle task");
 
     task_switch(task_head);
     task_return(&task_head->registers);
@@ -125,7 +162,7 @@ void task_run_first_task() {
 int task_init(struct task* task, struct process* process) {
     memset(task, 0, sizeof(struct task));
 
-    if (!(task->page_directory = paging_new_chunk(PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL)))
+    if (!(task->page_directory = paging_new_directory(PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL)))
         return -EIO;
 
     task->registers.ip = PHIX_PROGRAM_VIRTUAL_ADDRESS;
@@ -149,14 +186,6 @@ struct task* task_new(struct process* process) {
 
     if ((ret = task_init(task, process)) < 0)
         return ERROR(ret);
-
-    /* First and only task */
-    if (!task_head) {
-        task_head = task;
-        task_tail = task;
-        current_task = task;
-        return task;
-    }
 
     task_tail->next = task;
     task->prev = task_tail;
