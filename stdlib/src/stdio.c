@@ -1,6 +1,9 @@
 #include "stdio.h"
+#include "math.h"
 #include "phix.h"
+#include "string.h"
 #include <stdarg.h>
+#include <math.h>
 
 int getkey() {
     int val;
@@ -55,6 +58,26 @@ char* itoa(int i) {
         text[--loc] = '-';
 
     return &text[loc];
+}
+
+int atoi(const char* str) {
+    if (!str)
+        return 0;
+
+    int ret = 0;
+    size_t len = strlen(str) - 1;
+    int c;
+    if (len >= sizeof(int))
+        return 0;
+
+    while (*str) {
+        if ((c = to_digit(*str)))
+            ret += c * powi(10, len--);
+
+        str++;
+    }
+
+    return ret;
 }
 
 int putchar(int c) {
@@ -115,4 +138,16 @@ int printf(const char* fmt, ...) {
     }
 
     return 0;
+}
+
+int open(const char* filename, const char* mode) {
+    return phix_open(filename, mode);
+}
+
+int read(void* buf, size_t count, size_t n, int fd) {
+    return phix_read(buf, count, n, fd);
+}
+
+int close(int fd) {
+    return phix_close(fd);
 }

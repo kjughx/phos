@@ -343,6 +343,9 @@ void process_terminate(struct process* process) {
         kfree(process->allocations[i].p);
     }
 
+    if (process->open_fd)
+        fclose(process->open_fd);
+
     process_list_remove(process);
     process_free_data(process);
     kfree(process);

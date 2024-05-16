@@ -83,6 +83,46 @@ phix_exit:
     pop ebp
     ret
 
+global phix_open:function
+; int phix_open(const char* filename, const char* mode)
+phix_open:
+    push ebp
+    mov ebp, esp
+    mov eax, 7 ; Command free
+    push dword[ebp+8] ; Variable filename
+    push dword[ebp+12]; Variable mode
+    int 0x80   ; invoke syscall
+    add esp, 8
+    pop ebp
+    ret
+
+global phix_read:function
+; int phix_read(void* buf, size_t count, size_t n, int fd);
+phix_read:
+    push ebp
+    mov ebp, esp
+    mov eax, 8 ; Command free
+    push dword[ebp+8] ; Variable buf
+    push dword[ebp+12]; Variable count
+    push dword[ebp+16]; Variable n
+    push dword[ebp+20]; Variable fd
+    int 0x80   ; invoke syscall
+    add esp, 16
+    pop ebp
+    ret
+
+global phix_close:function
+; int phix_close(int fd)
+phix_close:
+    push ebp
+    mov ebp, esp
+    mov eax, 9 ; Command free
+    push dword[ebp+8] ; Variable fd
+    int 0x80   ; invoke syscall
+    add esp, 4
+    pop ebp
+    ret
+
 
 ;; FOR DEBUGGING ;;
 

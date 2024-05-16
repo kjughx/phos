@@ -50,6 +50,29 @@ out:
     return ret;
 }
 
+int copy_string_to_task(struct task* task, void* phys, void* virtual, int max) {
+    int ret = 0;
+    char* tmp = NULL;
+    pte_t old_directory = 0;
+
+    if (max >= PAGING_PAGE_SIZE)
+        return -EINVAL;
+
+    if ((ret = paging_get(task->page_directory->directory_entry, phys, &old_directory)) < 0)
+        return ret;
+
+    /* Map tmp -> tmp for the task */
+    paging_map(task->page_directory, phys, phys,
+               PAGING_IS_WRITABLE | PAGING_IS_PRESENT | PAGING_ACCESS_FROM_ALL);
+    paging_switch(task->page_directory);
+    strncpy(virtual, phys, max);
+    kernel_page();
+
+    ret = paging_set(task->page_directory->directory_entry, tmp, old_directory);
+
+    return ret;
+}
+
 int task_switch(struct task* task) {
     current_task = task;
     paging_switch(task->page_directory);

@@ -11,6 +11,9 @@ enum Syscalls {
     SYSCALL_FREE,
     SYSCALL_EXEC,
     SYSCALL_EXIT,
+    SYSCALL_OPEN,
+    SYSCALL_READ,
+    SYSCALL_CLOSE,
 #ifdef DEBUG
     SYSCALL_GET_PADDR = PHIX_MAX_SYSCALLS - 2,
     SYSCALL_GET_FLAGS = PHIX_MAX_SYSCALLS - 1,
@@ -25,6 +28,9 @@ void* syscall3_malloc(struct interrupt_frame* frame);
 void* syscall4_free(struct interrupt_frame* frame);
 void* syscall5_exec(struct interrupt_frame* frame);
 void* syscall6_exit(struct interrupt_frame* frame);
+void* syscall7_open(struct interrupt_frame* frame);
+void* syscall8_read(struct interrupt_frame* frame);
+void* syscall9_close(struct interrupt_frame* frame);
 
 #ifdef DEBUG
 void* syscall1022_get_paddr(struct interrupt_frame* frame);

@@ -83,6 +83,7 @@ void* syscall_handler(int command, struct interrupt_frame* frame) {
 }
 
 void exception_handler(struct interrupt_frame* frame) {
+    printk("EXCEPTION\n");
     process_terminate(task_current()->process);
     task_switch_next();
 }

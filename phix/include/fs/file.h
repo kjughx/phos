@@ -93,4 +93,6 @@ int fclose(int fd);
 /* @brief Insert the filesystem @fs */
 void fs_insert_fs(struct filesystem* fs);
 
+bool is_valid_descriptor(int fd);
+
 #endif /* _FILE_H_ */

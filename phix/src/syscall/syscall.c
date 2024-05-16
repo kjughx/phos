@@ -9,6 +9,9 @@ void syscall_register_commands() {
     syscall_register(SYSCALL_FREE, syscall4_free);
     syscall_register(SYSCALL_EXEC, syscall5_exec);
     syscall_register(SYSCALL_EXIT, syscall6_exit);
+    syscall_register(SYSCALL_OPEN, syscall7_open);
+    syscall_register(SYSCALL_READ, syscall8_read);
+    syscall_register(SYSCALL_CLOSE, syscall9_close);
 
 #ifdef DEBUG
     syscall_register(SYSCALL_GET_PADDR, syscall1022_get_paddr);

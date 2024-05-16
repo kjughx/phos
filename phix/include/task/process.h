@@ -49,6 +49,7 @@ struct process {
         int writer;
         bool caps;
     } keyboard;
+    int open_fd; /* For now, a process can only open file at a time */
     void* vmem;
 };
 
