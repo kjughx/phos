@@ -1,31 +1,28 @@
 ENTRY(_start)
-OUTPUT_FORMAT(binary)
 SECTIONS
 {
     . = 1M;
-    .asm : ALIGN(4096)
-        {
-        *(.asm)
-    }
+    .start :{
+        *(.start)
+        . = 1M + 512;
+    } =0
 
-    .text : ALIGN(4096)
-    {
+    .text : {
         *(.text)
+        *(.text.*)
     }
 
-    .rodata : ALIGN(4096)
-    {
+    .rodata : {
         *(.rodata)
+        *(.rodata..*)
     }
 
-    .data : ALIGN(4096)
-    {
+    .data : {
         *(.data)
+        *(.data.*)
     }
 
-    .bss : ALIGN(4096)
-
-    {
+    .bss : {
         *(COMMON)
         *(.bss)
     }
