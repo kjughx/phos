@@ -1,6 +1,11 @@
+cargo-features = ["edition2021"]
+
 [package]
 name = "ruix"
 version = "0.1.0"
+
+[build-dependencies]
+cc = "1.0"
 
 # the profile used for `cargo build`
 [profile.dev]

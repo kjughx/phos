@@ -9,30 +9,39 @@ CC=gcc
 
 BOOT_SRCS = boot/boot.asm
 BINS=$(BIN)/boot.bin $(BIN)/kernel.bin
-ROBJS=$(OBJ)/compiler_builtins.o $(OBJ)/core.o $(OBJ)/rustc_std_workspace_core.o
-OBJS=$(OBJ)/kernel.asm.o $(OBJ)/ruix
 
-KERNEL_SRCS = $(SRC)/main.rs
+R_SRCS := $(shell find src -name "*.rs")
+C_SRCS := $(shell find src -name "*.c")
+ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
 
-all: $(BINS)
+OBJS = $(patsubst src/%.asm, $(OBJ)/%.asm.o, $(ASM_SRCS))
+
+all: prelude $(BINS)
+	echo $(OBJS)
 	rm -f $(BIN)/os.bin
 	dd if=$(BIN)/boot.bin >> $(BIN)/os.bin
 	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
 	dd if=/dev/zero bs=512 count=100 >> $(BIN)/os.bin
 
-# $(BIN)/kernel.bin: $(OBJS)
-# 	$(TARGET)-$(CC) $(CFLAGS) -T linker.ld -o $@ $(OBJS)
-
 $(BIN)/boot.bin: $(SRC)/boot/boot.asm
 	nasm -f bin $< -o $@
 
 $(OBJ)/%.asm.o: $(SRC)/%.asm
+	@mkdir -p $(dir $@)
 	nasm -f elf $< -o $@
 
-$(BIN)/kernel.bin: src/main.rs
+$(BIN)/kernel.bin: rust
+
+.PHONY: rust
+rust: $(OBJS) $(R_SRCS) $(C_SRCS)
 	cargo build
-	cp target/i686-unknown-none/debug/ruix build/kernelfull.o
-	$(TARGET)-objcopy -O binary build/kernelfull.o $(BIN)/kernel.bin
+	cp $(OBJ)/i686-unknown-none/debug/ruix build/kernelfull.o
+	objcopy --target elf32-i386 -O binary build/kernelfull.o $(BIN)/kernel.bin
+
+.PHONY: prelude
+prelude:
+	@mkdir -p build
+	@mkdir -p bin
 
 .PHONY: clean
 clean:
@@ -41,3 +50,7 @@ clean:
 .PHONY: gdb
 gdb: all
 	gdb --command=debug.gdb
+
+.PHONY: qemu
+qemu: all
+	qemu-system-i386 -hda bin/os.bin
