@@ -22,4 +22,9 @@ typedef _Bool bool;
 #define ALIGN(x, a) __ALIGN_MASK(x, (typeof(x))(a)-1)
 #define ALIGN_LOWER(x, a) ((x) - ((x) % (a)))
 
+/* @brief Halt the system after printing @message */
+static inline void panic() {
+    asm volatile("hlt");
+}
+
 #endif /* _COMMON_H_ */

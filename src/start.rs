@@ -36,7 +36,6 @@ extern "C" fn _start() -> ! {
 #[inline(never)]
 #[panic_handler]
 fn panic(_info: &core::panic::PanicInfo) -> ! {
+    crate::tty::print("KERNEL PANIC");
     unsafe { asm!("panic:", "jmp panic", options(noreturn)) }
 }
-
-

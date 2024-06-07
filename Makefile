@@ -17,11 +17,10 @@ ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
 OBJS = $(patsubst src/%.asm, $(OBJ)/%.asm.o, $(ASM_SRCS))
 
 all: prelude $(BINS)
-	echo $(OBJS)
 	rm -f $(BIN)/os.bin
 	dd if=$(BIN)/boot.bin >> $(BIN)/os.bin
 	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
-	dd if=/dev/zero bs=512 count=100 >> $(BIN)/os.bin
+	dd if=/dev/zero bs=1024 count=1024 >> $(BIN)/os.bin
 
 $(BIN)/boot.bin: $(SRC)/boot/boot.asm
 	nasm -f bin $< -o $@

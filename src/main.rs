@@ -1,24 +1,19 @@
 #![no_std]
 #![no_main]
-#![feature(asm)]
-#![feature(naked_functions)]
-#![feature(once_cell)]
 
-mod start;
-mod memory;
-mod idt;
-mod tty;
-mod types;
-
-use idt::idt_init;
-use tty::{init_screen, print};
+use ruix::fs;
+use ruix::gdt::gdt_init;
+use ruix::idt::idt_init;
+use ruix::tty::{init_screen, print};
 
 #[no_mangle]
 pub extern "C" fn kernel_main() -> ! {
     init_screen();
 
+    gdt_init();
     idt_init();
 
+    fs::resolve();
     print("Hello, World!");
 
     loop {}
