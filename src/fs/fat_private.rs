@@ -62,7 +62,7 @@ pub struct FatDirectoryItem {
     pub filesize: u32,
 }
 
-const FAT_DIRECTORY_ITEM_SIZE: usize = core::mem::size_of::<FatDirectoryItem>();
+pub const FAT_DIRECTORY_ITEM_SIZE: usize = core::mem::size_of::<FatDirectoryItem>();
 impl From<&[u8; FAT_DIRECTORY_ITEM_SIZE]> for FatDirectoryItem {
     fn from(bytes: &[u8; FAT_DIRECTORY_ITEM_SIZE]) -> Self {
         unsafe { *(bytes.as_ptr() as *const FatDirectoryItem)}

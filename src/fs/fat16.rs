@@ -4,6 +4,7 @@ use crate::disk::get_disk;
 use crate::disk::Disk;
 
 use crate::disk::DiskStreamer;
+use crate::fs::fat_private::FAT_DIRECTORY_ITEM_SIZE;
 use super::fat_private::FAT_HEADER_SIZE;
 use super::IOError;
 use super::{fat_private::{FatDirectoryItem, FatH}, FileSystem};
