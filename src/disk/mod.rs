@@ -1,3 +1,4 @@
+use core::array::IntoIter;
 use core::lazy::Lazy;
 
 use crate::memory::Dyn;
@@ -32,22 +33,20 @@ impl _Disk {
             r#type, sector_size, id, filesystem: None,
         }
     }
-    pub fn read_block(&self, lba: u32, total: u8, buf: &mut [u8]) {
+    pub fn read_sector(&self, lba: u32, buf: &mut [u8; SECTOR_SIZE]) {
         outb(0x1F6, ((lba >> 24) | 0xE0) as u8);
-        outb(0x1F2, total);
+        outb(0x1F2, 1);
         outb(0x1F3, (lba & 0xff) as u8);
         outb(0x1F4, (lba >> 8) as u8);
         outb(0x1F5, (lba >> 16) as u8);
         outb(0x1F7, 0x20);
 
-        for _ in 0..total {
-            spinwhile!(insb(0x1F7) & 0x08 == 0);
+        spinwhile!(insb(0x1F7) & 0x08 == 0);
 
-            for i in 0..SECTOR_SIZE/2 - 1 {
-                let val = insw(0x1F0);
-                buf[2*i] = (val & 0x00ff) as u8;
-                buf[2*i + 1] = (val >> 8) as u8;
-            }
+        for i in 0..SECTOR_SIZE / 2 - 1 {
+            let val = insw(0x1F0);
+            buf[2 * i] = (val & 0xff) as u8;
+            buf[2 * i + 1] = (val >> 8) as u8;
         }
     }
 }
@@ -89,11 +88,9 @@ impl<'a> DiskStreamer<'a> {
                 bytes_to_read -= (offset + bytes_to_read) - SECTOR_SIZE;
             }
 
-            self.disk.read_block(sector as u32, 1, &mut local);
+            self.disk.read_sector(sector as u32, &mut local);
 
-            for i in 0..bytes_to_read {
-                buf[bytes_read + i] = local[i];
-            }
+            buf[bytes_read..(bytes_to_read + bytes_read)].clone_from_slice(&local[..bytes_to_read]);
 
             self.pos += bytes_to_read;
             bytes_read += bytes_to_read;

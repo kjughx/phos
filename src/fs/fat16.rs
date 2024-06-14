@@ -1,8 +1,10 @@
+use core::primitive;
 use core::{lazy::Lazy, mem::MaybeUninit};
 use crate::disk::get_disk;
 use crate::disk::Disk;
 
 use crate::disk::DiskStreamer;
+use super::fat_private::FAT_HEADER_SIZE;
 use super::IOError;
 use super::{fat_private::{FatDirectoryItem, FatH}, FileSystem};
 
@@ -27,6 +29,25 @@ struct FatDirectory {
     ending_sector_pos: u32,
 }
 
+impl<'a> FatDirectory {
+    fn new(disk: &Disk, sector_pos: usize, streamer: &'a mut DiskStreamer<'a>) -> Self {
+        streamer.seek(sector_pos);
+
+        let mut count = 0;
+        loop {
+            let mut buf = [0; FAT_DIRECTORY_ITEM_SIZE];
+            streamer.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);
+            match buf[0] {
+                0 => break,
+                0xE5 => continue,
+                _ => count += 1,
+            }
+        }
+
+        todo!()
+    }
+}
+
 enum FatItem {
     Directory(FatDirectory),
     File(FatDirectoryItem),
@@ -37,39 +58,54 @@ struct FileDescriptor {
     pos: u32,
 }
 
-struct FatPrivate {
+struct Fat16<'a> {
     header: FatH,
     root_dir: MaybeUninit<FatDirectory>,
-    cluster_stream: DiskStreamer<'static>,
-    fat_stream: DiskStreamer<'static>,
-    directory_stream: DiskStreamer<'static>,
+    cluster_stream: DiskStreamer<'a>,
+    fat_stream: DiskStreamer<'a>,
+    directory_stream: DiskStreamer<'a>,
 }
 
-impl FatPrivate {
-    pub fn new() -> Self {
+static mut FAT16: Lazy<Fat16> = Lazy::new(Fat16::new);
+
+impl<'a> Fat16<'a> {
+    fn new(/* disk: &Disk */) -> Self {
+        // NOTE: Hardcoding the disk here.
         Self {
             header: FatH::default(),
             root_dir: MaybeUninit::uninit(),
             cluster_stream: DiskStreamer::new(0),
             fat_stream: DiskStreamer::new(0),
             directory_stream: DiskStreamer::new(0)
-
         }
+    }
+
+    fn validate_signature(disk: &Disk) -> bool {
+        let mut buf: [u8; FAT_HEADER_SIZE] = [0; FAT_HEADER_SIZE];
+        let mut streamer = DiskStreamer::new(disk.id);
+        streamer.read(&mut buf, FAT_HEADER_SIZE);
+        let header = FatH::from(&buf);
+
+        header.extended_header.signature == FAT16_SIGNATURE
+    }
+
+    fn root_offset(&self) -> usize {
+        let primary_header = self.header.primary_header;
+
+        primary_header.fat_copies as usize *  primary_header.sectors_per_fat as usize + primary_header.reserved_sectors as usize
+    }
+
+    fn populate_root(&'a mut self, disk: &Disk) -> Result<(), IOError> {
+        let root_directory = FatDirectory::new(disk, self.root_offset(), &mut self.directory_stream);
+
+        Ok(())
     }
 }
 
-struct Fat16(FatPrivate);
-static mut FAT16: Lazy<Fat16> = Lazy::new(||
-    Fat16(FatPrivate::new())
-);
 
-impl FileSystem for Fat16 {
+impl FileSystem for Fat16<'_> {
     fn resolve(&self, disk: &Disk) -> Result<(), IOError> {
-        let mut buf: [u8; 36 + 26] = [0; 36 + 26];
-        let mut streamer = DiskStreamer::new(disk.id);
-        streamer.read( &mut buf, 36 + 26);
-        let header = FatH::from(&buf);
-        if header.extended_header.signature != FAT16_SIGNATURE {
+        if !Self::validate_signature(disk) {
             return Err(IOError::NotOurFS);
         }
 

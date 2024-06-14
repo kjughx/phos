@@ -1,19 +1,7 @@
-use core::ptr::slice_from_raw_parts;
-
-macro_rules! u16 {
-    ($n:ident, $o:literal) => {
-        ($n[$o] as u16) << 8 | $n[$o + 1] as u16;
-    };
-}
-
-macro_rules! u32 {
-    ($n:ident, $o:literal) => {
-        ($n[$o] as u32) << 24 | ($n[$o + 1] as u32) << 16 | ($n[$o + 2] as u32) << 8 | $n[$o + 3] as u32;
-    };
-}
+use crate::disk::DiskStreamer;
 
 #[repr(C, packed)]
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct FatHeaderExt {
     pub drive_no: u8,
     pub win_nt_bit: u8,
@@ -23,125 +11,68 @@ pub struct FatHeaderExt {
     pub system_id_string: [u8; 8],
 }
 
-impl From<&[u8]> for FatHeaderExt {
-    fn from(bytes: &[u8]) -> Self {
-        Self {
-            drive_no: bytes[0],
-            win_nt_bit: bytes[1],
-            signature: bytes[2],
-            volume_id: u32!(bytes, 3),
-            volume_id_string: [
-                bytes[7],
-                bytes[8],
-                bytes[9],
-                bytes[10],
-                bytes[11],
-                bytes[12],
-                bytes[13],
-                bytes[14],
-                bytes[15],
-                bytes[16],
-                bytes[17],
-            ],
-            system_id_string: [
-                bytes[18],
-                bytes[19],
-                bytes[20],
-                bytes[21],
-                bytes[22],
-                bytes[23],
-                bytes[24],
-                bytes[25],
-            ]
-        }
-    }
-}
-
 #[repr(C, packed)]
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct FatHeader {
-    short_jmp_ins: [u8; 3],
-    oem_identifier: [u8; 8],
-    bytes_per_sector: u16,
-    sectors_per_cluster: u8,
-    reseverd_sectors: u16,
-    fat_copes:u8,
-    root_dir_entries: u16,
-    number_of_sectors: u16,
-    media_type: u8,
-    sectors_per_fat: u16,
-    sectors_per_track: u16,
-    number_of_heads: u16,
-    hidden_sectors: u32,
-    sectors_big: u32,
+    pub short_jmp_ins: [u8; 3],
+    pub oem_identifier: [u8; 8],
+    pub bytes_per_sector: u16,
+    pub sectors_per_cluster: u8,
+    pub reserved_sectors: u16,
+    pub fat_copies:u8,
+    pub root_dir_entries: u16,
+    pub number_of_sectors: u16,
+    pub media_type: u8,
+    pub sectors_per_fat: u16,
+    pub sectors_per_track: u16,
+    pub number_of_heads: u16,
+    pub hidden_sectors: u32,
+    pub sectors_big: u32,
 }
 
-impl From<&[u8]> for FatHeader {
-    fn from(bytes: &[u8]) -> Self {
-        let short_jmp_ins: [u8; 3] = [bytes[0], bytes[1], bytes[2]];
-        let oem_identifier: [u8; 8] = [
-                bytes[3],
-                bytes[4],
-                bytes[5],
-                bytes[6],
-                bytes[7],
-                bytes[8],
-                bytes[9],
-                bytes[10],
-            ];
-        Self {
-            short_jmp_ins,
-            oem_identifier,
-            bytes_per_sector:  u16!(bytes, 11),
-            sectors_per_cluster:  bytes[13],
-            reseverd_sectors:  u16!(bytes, 14),
-            fat_copes:  bytes[16],
-            root_dir_entries:  u16!(bytes, 17),
-            number_of_sectors:  u16!(bytes, 19),
-            media_type:  bytes[21],
-            sectors_per_fat:  u16!(bytes, 22),
-            sectors_per_track:  u16!(bytes, 24),
-            number_of_heads:  u16!(bytes, 26),
-            hidden_sectors:  u32!(bytes, 28),
-            sectors_big:  u32!(bytes, 32),
-        }
-    }
-}
-
-#[derive(Default)]
+#[derive(Default, Clone, Copy)]
 pub struct FatH {
     pub primary_header: FatHeader,
     pub extended_header: FatHeaderExt,
 }
 
-impl From<&[u8; 62]> for FatH {
-    fn from(bytes: &[u8; 62]) -> Self {
-        let (primary, extended) = unsafe {
-            (
-                core::mem::transmute_copy(&bytes),
-                core::mem::transmute_copy(&&bytes[36..62]),
-            )
-        };
-        Self {
-            primary_header: primary,
-            extended_header: extended,
-        }
+pub const FAT_HEADER_SIZE: usize = core::mem::size_of::<FatH>();
+
+impl From<&[u8; FAT_HEADER_SIZE]> for FatH {
+    fn from(bytes: &[u8; FAT_HEADER_SIZE]) -> Self {
+        unsafe { *(bytes.as_ptr() as *const FatH)}
     }
 }
 
 #[repr(C, packed)]
+#[derive(Clone, Copy)]
 pub struct FatDirectoryItem {
-    filename: [u8; 8],
-    extension: [u8; 3],
-    attributes: u8,
-    reserved: u8,
-    creation_time_ds: u8,
-    creation_time: u16,
-    creation_dat: u16,
-    last_access: u16,
-    high_16_bits_first_cluster: u16,
-    last_mod_time: u16,
-    last_mod_data: u16,
-    low_16_bits_first_cluster: u16,
-    filesize: u32,
+    pub filename: [u8; 8],
+    pub extension: [u8; 3],
+    pub attributes: u8,
+    pub reserved: u8,
+    pub creation_time_ds: u8,
+    pub creation_time: u16,
+    pub creation_dat: u16,
+    pub last_access: u16,
+    pub high_16_bits_first_cluster: u16,
+    pub last_mod_time: u16,
+    pub last_mod_data: u16,
+    pub low_16_bits_first_cluster: u16,
+    pub filesize: u32,
+}
+
+const FAT_DIRECTORY_ITEM_SIZE: usize = core::mem::size_of::<FatDirectoryItem>();
+impl From<&[u8; FAT_DIRECTORY_ITEM_SIZE]> for FatDirectoryItem {
+    fn from(bytes: &[u8; FAT_DIRECTORY_ITEM_SIZE]) -> Self {
+        unsafe { *(bytes.as_ptr() as *const FatDirectoryItem)}
+    }
+}
+
+impl<'a> From<&'a mut DiskStreamer<'a>> for FatDirectoryItem {
+    fn from(streamer: &'a mut DiskStreamer) -> Self {
+        let mut buf = [0; FAT_DIRECTORY_ITEM_SIZE];
+        streamer.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);
+        Self::from(&buf)
+    }
 }

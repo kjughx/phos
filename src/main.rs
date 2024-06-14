@@ -1,6 +1,8 @@
 #![no_std]
 #![no_main]
 
+use core::hint;
+
 use ruix::fs;
 use ruix::gdt::gdt_init;
 use ruix::idt::idt_init;
@@ -16,5 +18,7 @@ pub extern "C" fn kernel_main() -> ! {
     fs::resolve();
     print("Hello, World!");
 
-    loop {}
+    loop {
+        hint::spin_loop()
+    }
 }
