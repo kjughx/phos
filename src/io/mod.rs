@@ -1,3 +1,5 @@
+use core::arch::asm;
+
 pub extern "C" fn insb(port: u16) -> u8 {
     let val: u8;
     unsafe {
@@ -26,7 +28,6 @@ pub extern "C" fn outb(port: u16, val: u8) {
         )
     }
 }
-
 
 pub extern "C" fn outw(port: u16, val: u16) {
     unsafe {

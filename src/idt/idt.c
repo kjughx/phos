@@ -1,6 +1,6 @@
 #include "../common.h"
-#include "../memory/memory.h"
 #include "../io/io.h"
+#include "../memory/memory.h"
 
 #define ACK_INTR()                                                                                 \
     do {                                                                                           \
@@ -63,7 +63,7 @@ void idt_set(int i, void* addr) {
 
 /* This is exported to rust */
 void _idt_init() {
-    memset(idt_descriptors, 0, sizeof(idt_descriptors));
+    _memset(idt_descriptors, 0, sizeof(idt_descriptors));
     idtr_descriptor.limit = sizeof(idt_descriptors) - 1;
     idtr_descriptor.base = (uint32_t)idt_descriptors;
 

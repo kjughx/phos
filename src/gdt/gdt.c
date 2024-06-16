@@ -5,9 +5,9 @@
 
 struct gdt gdt_real[GDT_SEGMENTS];
 struct gdt_structured gdt_structured[GDT_SEGMENTS] = {
-    {.base = 0x00, .limit = 0x00, .type = 0x00},                 /* NULL Segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A},           /* Kernel code segment */
-    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92},           /* Kernel data segment */
+    {.base = 0x00, .limit = 0x00, .type = 0x00},       /* NULL Segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x9A}, /* Kernel code segment */
+    {.base = 0x00, .limit = 0xFFFFFFFF, .type = 0x92}, /* Kernel data segment */
 };
 
 static void encode_gdt_entry(uint8_t* target, struct gdt_structured src) {
@@ -44,7 +44,7 @@ void gdt_structured_to_gdt(struct gdt* gdt, struct gdt_structured* structured_gd
 }
 
 void _gdt_init() {
-    memset(gdt_real, 0, sizeof(gdt_real));
+    _memset(gdt_real, 0, sizeof(gdt_real));
     gdt_structured_to_gdt(gdt_real, gdt_structured, GDT_SEGMENTS);
 
     /* Load the GDT */

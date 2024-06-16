@@ -1,10 +1,10 @@
-use crate::disk::DiskStreamer;
+use crate::{disk::DiskStreamer, types::Addr};
 
 #[repr(C, packed)]
 #[derive(Default, Clone, Copy)]
 pub struct FatHeaderExt {
-    pub drive_no: u8,
-    pub win_nt_bit: u8,
+    drive_no: u8,
+    win_nt_bit: u8,
     pub signature: u8,
     pub volume_id: u32,
     pub volume_id_string: [u8; 11],
@@ -19,7 +19,7 @@ pub struct FatHeader {
     pub bytes_per_sector: u16,
     pub sectors_per_cluster: u8,
     pub reserved_sectors: u16,
-    pub fat_copies:u8,
+    pub fat_copies: u8,
     pub root_dir_entries: u16,
     pub number_of_sectors: u16,
     pub media_type: u8,
@@ -36,11 +36,22 @@ pub struct FatH {
     pub extended_header: FatHeaderExt,
 }
 
+impl FatH {
+    pub fn new(disk_id: usize) -> Self {
+        let mut streamer = DiskStreamer::new(disk_id);
+        const HEADER_SIZE: usize = core::mem::size_of::<FatH>();
+        let mut buf: [u8; HEADER_SIZE] = [0; HEADER_SIZE];
+        streamer.read(&mut buf, HEADER_SIZE);
+
+        FatH::from(&buf)
+    }
+}
+
 pub const FAT_HEADER_SIZE: usize = core::mem::size_of::<FatH>();
 
 impl From<&[u8; FAT_HEADER_SIZE]> for FatH {
     fn from(bytes: &[u8; FAT_HEADER_SIZE]) -> Self {
-        unsafe { *(bytes.as_ptr() as *const FatH)}
+        unsafe { *(bytes.as_ptr() as *const FatH) }
     }
 }
 
@@ -62,17 +73,21 @@ pub struct FatDirectoryItem {
     pub filesize: u32,
 }
 
-pub const FAT_DIRECTORY_ITEM_SIZE: usize = core::mem::size_of::<FatDirectoryItem>();
-impl From<&[u8; FAT_DIRECTORY_ITEM_SIZE]> for FatDirectoryItem {
-    fn from(bytes: &[u8; FAT_DIRECTORY_ITEM_SIZE]) -> Self {
-        unsafe { *(bytes.as_ptr() as *const FatDirectoryItem)}
+impl FatDirectoryItem {
+    pub fn new(streamer: &mut DiskStreamer, start: usize) -> Self {
+        let mut buf = [0; FAT_DIRECTORY_ITEM_SIZE];
+        streamer.seek(start);
+        streamer.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);
+        FatDirectoryItem::from(&buf)
+    }
+    pub fn first_cluster(&self) -> Addr {
+        Addr(self.high_16_bits_first_cluster as u32 | self.low_16_bits_first_cluster as u32)
     }
 }
 
-impl<'a> From<&'a mut DiskStreamer<'a>> for FatDirectoryItem {
-    fn from(streamer: &'a mut DiskStreamer) -> Self {
-        let mut buf = [0; FAT_DIRECTORY_ITEM_SIZE];
-        streamer.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);
-        Self::from(&buf)
+pub const FAT_DIRECTORY_ITEM_SIZE: usize = core::mem::size_of::<FatDirectoryItem>();
+impl From<&[u8; FAT_DIRECTORY_ITEM_SIZE]> for FatDirectoryItem {
+    fn from(bytes: &[u8; FAT_DIRECTORY_ITEM_SIZE]) -> Self {
+        unsafe { *(bytes.as_ptr() as *const FatDirectoryItem) }
     }
 }

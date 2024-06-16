@@ -3,7 +3,6 @@
 
 use core::hint;
 
-use ruix::fs;
 use ruix::gdt::gdt_init;
 use ruix::idt::idt_init;
 use ruix::tty::{init_screen, print};
@@ -15,7 +14,8 @@ pub extern "C" fn kernel_main() -> ! {
     gdt_init();
     idt_init();
 
-    fs::resolve();
+    ruix::fs::resolve(ruix::disk::get_disk_mut(0)).ok().unwrap();
+
     print("Hello, World!");
 
     loop {

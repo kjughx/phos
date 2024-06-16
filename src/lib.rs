@@ -1,21 +1,24 @@
 #![no_std]
-#![feature(asm)]
 #![feature(naked_functions)]
-#![feature(once_cell)]
+#![allow(internal_features)]
 #![feature(ptr_internals)]
+#![allow(dead_code)]
 
-pub mod start;
-pub mod memory;
-pub mod io;
-pub mod idt;
-pub mod gdt;
-pub mod tty;
-pub mod types;
 pub mod disk;
 pub mod fs;
+mod fs_impl;
+pub mod gdt;
+pub mod idt;
+pub mod io;
+pub mod memory;
+pub mod serial;
+pub mod start;
+pub mod string;
+pub mod tty;
+pub mod types;
 
-pub use memory::Box as Box;
-pub use memory::Dyn as Dyn;
+pub use memory::Box;
+pub use memory::Dyn;
 
 #[macro_export]
 macro_rules! spinwhile {

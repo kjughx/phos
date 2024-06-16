@@ -8,7 +8,6 @@
  * @param c:    The value to initialize the memory to
  * @param size: The size of the memory region
  */
-void* memset(void* p, int c, size_t size);
+void* _memset(void* p, int c, size_t size);
 
 #endif
-

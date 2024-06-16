@@ -1,12 +1,12 @@
-use core::lazy::Lazy;
-use crate::types::Mutex;
+use crate::types::Global;
 
 const VGA_WIDTH: usize = 80;
 const VGA_HEIGHT: usize = 25;
 
-static mut TERMINAL: Lazy<Mutex<TypeWriter>> = Lazy::new(|| {
-    Mutex::new(TypeWriter::new(0xB8000, VGA_WIDTH, VGA_HEIGHT))
-});
+static mut TERMINAL: Global<TypeWriter> = Global::new(
+    || TypeWriter::new(0xB8000, VGA_WIDTH, VGA_HEIGHT),
+    "TERMINAL",
+);
 
 pub struct TypeWriter {
     base: *mut u16,
@@ -20,7 +20,11 @@ static COLOR_WHITE: u8 = 15;
 impl TypeWriter {
     pub fn new(base: u32, width: usize, height: usize) -> Self {
         Self {
-            base: base as *mut u16, width, height, ix: 0, iy: 0,
+            base: base as *mut u16,
+            width,
+            height,
+            ix: 0,
+            iy: 0,
         }
     }
 
@@ -35,7 +39,7 @@ impl TypeWriter {
     }
 
     fn make_char(c: char, color: u8) -> u16 {
-        return (color as u16) << 8 | (c as u16);
+        (color as u16) << 8 | (c as u16)
     }
 
     fn backspace(&mut self) {
@@ -55,7 +59,7 @@ impl TypeWriter {
 
     fn put_char(&mut self, ix: isize, iy: isize, c: char, color: u8) {
         unsafe {
-            *(self.base as *mut u16).offset(iy * (self.width as isize) + ix) = Self::make_char(c, color);
+            *self.base.offset(iy * (self.width as isize) + ix) = Self::make_char(c, color);
         }
     }
 

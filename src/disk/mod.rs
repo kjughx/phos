@@ -1,14 +1,19 @@
-use core::array::IntoIter;
-use core::lazy::Lazy;
+use core::ptr;
 
-use crate::memory::Dyn;
 use crate::fs::FileSystem;
-use crate::types::Mutex;
-use crate::{spinuntil, spinwhile};
+use crate::spinwhile;
+use crate::types::Global;
 
-use crate::io::{outb, insb, insw};
+use crate::io::{insb, insw, outb};
 
-const SECTOR_SIZE: usize = 512;
+pub const SECTOR_SIZE: usize = 512;
+pub struct Sector(pub usize);
+
+impl Sector {
+    pub fn as_pos(&self) -> usize {
+        self.0 * SECTOR_SIZE
+    }
+}
 
 #[derive(Debug)]
 pub enum IOError {
@@ -16,23 +21,27 @@ pub enum IOError {
 }
 
 pub enum DiskType {
-    Real
+    Real,
 }
 
 pub struct _Disk {
-    r#type: DiskType,
-    sector_size: usize,
+    _disk_type: DiskType,
+    pub sector_size: usize,
     pub id: usize,
 
-    filesystem: Option<Dyn<dyn FileSystem>>
+    filesystem: Option<&'static dyn FileSystem>,
 }
 
 impl _Disk {
-    pub fn new(r#type: DiskType, sector_size: usize, id: usize) -> Self {
+    pub fn new(disk_type: DiskType, sector_size: usize, id: usize) -> Self {
         Self {
-            r#type, sector_size, id, filesystem: None,
+            _disk_type: disk_type,
+            sector_size,
+            id,
+            filesystem: None,
         }
     }
+
     pub fn read_sector(&self, lba: u32, buf: &mut [u8; SECTOR_SIZE]) {
         outb(0x1F6, ((lba >> 24) | 0xE0) as u8);
         outb(0x1F2, 1);
@@ -49,29 +58,36 @@ impl _Disk {
             buf[2 * i + 1] = (val >> 8) as u8;
         }
     }
+    pub fn register_filesystem(&mut self, fs: &'static dyn FileSystem) {
+        self.filesystem = Some(fs)
+    }
 }
 
-pub type Disk = Lazy<_Disk>;
+pub type Disk = Global<_Disk>;
 
-static mut DISK0: Disk = Lazy::new(||
-    _Disk::new(DiskType::Real, SECTOR_SIZE, 0)
-);
+static mut DISK0: Disk = Global::new(|| _Disk::new(DiskType::Real, SECTOR_SIZE, 0), "DISK0");
 
-pub struct DiskStreamer<'a> {
+pub struct DiskStreamer {
     pos: usize,
-    disk: &'a mut Disk,
+    disk: *const Disk,
 }
 
-impl<'a> DiskStreamer<'a> {
-    pub fn new(id: usize) -> Self {
-        unsafe {Self {
-            pos: 0,
-            disk: &mut DISK0
-        }}
+impl DiskStreamer {
+    pub fn new(_id: usize) -> Self {
+        unsafe {
+            Self {
+                pos: 0,
+                disk: ptr::addr_of!(DISK0),
+            }
+        }
     }
 
     pub fn seek(&mut self, pos: usize) {
         self.pos = pos
+    }
+
+    pub fn pos(&self) -> usize {
+        self.pos
     }
 
     pub fn read(&mut self, buf: &mut [u8], total: usize) {
@@ -88,7 +104,13 @@ impl<'a> DiskStreamer<'a> {
                 bytes_to_read -= (offset + bytes_to_read) - SECTOR_SIZE;
             }
 
-            self.disk.read_sector(sector as u32, &mut local);
+            unsafe {
+                self.disk
+                    .as_ref()
+                    .unwrap()
+                    .lock()
+                    .read_sector(sector as u32, &mut local);
+            }
 
             buf[bytes_read..(bytes_to_read + bytes_read)].clone_from_slice(&local[..bytes_to_read]);
 
@@ -98,6 +120,12 @@ impl<'a> DiskStreamer<'a> {
     }
 }
 
-pub fn get_disk(id: usize) -> &'static Disk {
+#[allow(static_mut_refs)]
+pub fn get_disk(_id: usize) -> &'static Disk {
     unsafe { &DISK0 }
+}
+
+#[allow(static_mut_refs)]
+pub fn get_disk_mut(_id: usize) -> &'static mut Disk {
+    unsafe { &mut DISK0 }
 }

@@ -1,6 +1,8 @@
 #[no_mangle]
 pub static DATA_SEG: u32 = 0x10;
 
+use core::arch::asm;
+
 #[no_mangle]
 #[naked]
 #[link_section = ".start"]
@@ -26,8 +28,6 @@ extern "C" fn _start() -> ! {
             "mov al, 00000001b",
             "out 0x21, al",
             "call kernel_main",
-            "loop:",
-            "jmp loop",
             options(noreturn)
         );
     }
