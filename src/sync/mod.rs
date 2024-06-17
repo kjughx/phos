@@ -4,7 +4,6 @@ use core::{
     ops::{Deref, DerefMut},
     sync::atomic::{AtomicBool, Ordering},
 };
-pub struct Addr(pub u32);
 
 pub struct Lock {
     locked: AtomicBool,

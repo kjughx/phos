@@ -7,12 +7,12 @@ CFLAGS=-std=gnu99 -Wall -Werror -Wno-cpp -O0 -Isrc/ -Iinc/ -ffreestanding -falig
 LDFLAGS=-g -relocatable
 CC=gcc
 
-BOOT_SRCS = boot/boot.asm
+BOOT_SRCS = asm/boot/boot.asm
 BINS=$(BIN)/boot.bin $(BIN)/kernel.bin
 
 R_SRCS := $(shell find src -name "*.rs")
 C_SRCS := $(shell find src -name "*.c")
-ASM_SRCS := $(filter-out src/boot/boot.asm, $(shell find src -name "*.asm"))
+ASM_SRCS := $(filter-out src/asm/boot/boot.asm, $(shell find src -name "*.asm"))
 
 OBJS = $(patsubst src/%.asm, $(OBJ)/%.asm.o, $(ASM_SRCS))
 
@@ -21,8 +21,11 @@ all: prelude $(BINS)
 	dd if=$(BIN)/boot.bin >> $(BIN)/os.bin
 	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
 	dd if=/dev/zero bs=1024 count=1024 >> $(BIN)/os.bin
+	sudo mount -t vfat $(BIN)/os.bin /mnt/d
+	echo "Hello, World!" | sudo tee /mnt/d/hello.txt
+	sudo umount /mnt/d
 
-$(BIN)/boot.bin: $(SRC)/boot/boot.asm
+$(BIN)/boot.bin: $(SRC)/asm/boot/boot.asm
 	nasm -f bin $< -o $@
 
 $(OBJ)/%.asm.o: $(SRC)/%.asm

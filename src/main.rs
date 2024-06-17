@@ -3,9 +3,11 @@
 
 use core::hint;
 
+use ruix::fs::{self, path};
 use ruix::gdt::gdt_init;
 use ruix::idt::idt_init;
-use ruix::tty::{init_screen, print};
+use ruix::println;
+use ruix::tty::init_screen;
 
 #[no_mangle]
 pub extern "C" fn kernel_main() -> ! {
@@ -14,9 +16,11 @@ pub extern "C" fn kernel_main() -> ! {
     gdt_init();
     idt_init();
 
-    ruix::fs::resolve(ruix::disk::get_disk_mut(0)).ok().unwrap();
+    fs::resolve(ruix::disk::get_disk_mut(0)).ok().unwrap();
 
-    print("Hello, World!");
+    fs::open(path::Path::new("0:/hello.txt"), fs::FileMode::ReadOnly);
+
+    println!("Hello, World!");
 
     loop {
         hint::spin_loop()

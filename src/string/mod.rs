@@ -1,4 +1,4 @@
-use crate::memory::Vec;
+use crate::boxed::Vec;
 
 #[derive(Clone)]
 pub struct String(Vec<u8>);

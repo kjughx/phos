@@ -1,5 +1,5 @@
 #include "gdt.h"
-#include "../memory/memory.h"
+#include "memory.h"
 
 #define GDT_SEGMENTS 3
 

@@ -1,4 +1,4 @@
-use crate::{disk::DiskStreamer, types::Addr};
+use crate::{disk::DiskStreamer, Addr};
 
 #[repr(C, packed)]
 #[derive(Default, Clone, Copy)]

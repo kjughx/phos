@@ -1,6 +1,6 @@
-#include "../common.h"
-#include "../io/io.h"
-#include "../memory/memory.h"
+#include "common.h"
+#include "io.h"
+#include "memory.h"
 
 #define ACK_INTR()                                                                                 \
     do {                                                                                           \

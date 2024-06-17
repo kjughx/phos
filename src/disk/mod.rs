@@ -2,7 +2,9 @@ use core::ptr;
 
 use crate::fs::FileSystem;
 use crate::spinwhile;
-use crate::types::Global;
+use crate::sync::Global;
+
+use crate::Dyn;
 
 use crate::io::{insb, insw, outb};
 
@@ -24,15 +26,15 @@ pub enum DiskType {
     Real,
 }
 
-pub struct _Disk {
+pub struct Disk {
     _disk_type: DiskType,
     pub sector_size: usize,
     pub id: usize,
 
-    filesystem: Option<&'static dyn FileSystem>,
+    pub filesystem: Option<Dyn<dyn FileSystem>>,
 }
 
-impl _Disk {
+impl Disk {
     pub fn new(disk_type: DiskType, sector_size: usize, id: usize) -> Self {
         Self {
             _disk_type: disk_type,
@@ -58,18 +60,17 @@ impl _Disk {
             buf[2 * i + 1] = (val >> 8) as u8;
         }
     }
-    pub fn register_filesystem(&mut self, fs: &'static dyn FileSystem) {
+
+    pub fn register_filesystem(&mut self, fs: Dyn<dyn FileSystem>) {
         self.filesystem = Some(fs)
     }
 }
 
-pub type Disk = Global<_Disk>;
-
-static mut DISK0: Disk = Global::new(|| _Disk::new(DiskType::Real, SECTOR_SIZE, 0), "DISK0");
+static mut DISK0: Global<Disk> = Global::new(|| Disk::new(DiskType::Real, SECTOR_SIZE, 0), "DISK0");
 
 pub struct DiskStreamer {
     pos: usize,
-    disk: *const Disk,
+    disk: *const Global<Disk>,
 }
 
 impl DiskStreamer {
@@ -121,11 +122,11 @@ impl DiskStreamer {
 }
 
 #[allow(static_mut_refs)]
-pub fn get_disk(_id: usize) -> &'static Disk {
+pub fn get_disk(_id: usize) -> &'static Global<Disk> {
     unsafe { &DISK0 }
 }
 
 #[allow(static_mut_refs)]
-pub fn get_disk_mut(_id: usize) -> &'static mut Disk {
+pub fn get_disk_mut(_id: usize) -> &'static mut Global<Disk> {
     unsafe { &mut DISK0 }
 }

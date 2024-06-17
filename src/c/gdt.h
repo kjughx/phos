@@ -1,7 +1,7 @@
 #ifndef _GDT_H_
 #define _GDT_H_
 
-#include "../common.h"
+#include "common.h"
 
 struct gdt {
     uint16_t segment;
@@ -23,4 +23,3 @@ void gdt_structured_to_gdt(struct gdt* gdt, struct gdt_structured* structured_gd
                            int total_entries);
 
 #endif /* _GDT_H_ */
-

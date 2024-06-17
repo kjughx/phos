@@ -1,5 +1,5 @@
 #include "memory.h"
-#include "../common.h"
+#include "common.h"
 
 void* _memset(void* p, int c, size_t size) {
     char* cp = (char*)p;

@@ -1,222 +1,169 @@
-use crate::types::Global;
-use core::{
-    ops::{Deref, DerefMut, Index, IndexMut},
-    ptr::Unique,
-};
+use core::ptr::{self, Unique};
 
-mod heap;
-use heap::{Heap, HEAP_BLOCK_SIZE};
+pub const HEAP_BLOCK_SIZE: u32 = 4096;
 
-const KERNEL_HEAP_SIZE: usize = 100 * 1024 * 1024; // 100MB
+const BLOCK_FREE: u8 = 1 << 0;
+const BLOCK_TAKEN: u8 = 1 << 1;
+const BLOCK_FIRST: u8 = 1 << 4;
+const BLOCK_HAS_NEXT: u8 = 1 << 5;
 
-static mut KERNEL_HEAP: Global<Heap> = Global::new(
-    || {
-        Heap::new(
-            0x00007E00,
-            KERNEL_HEAP_SIZE / HEAP_BLOCK_SIZE as usize,
-            0x01000000,
-        )
-    },
-    "KERNEL_HEAP",
-);
+#[derive(Debug)]
+enum MemoryError {
+    NoAction,
+    InvalidAlignment,
+    OutOfMemory,
+    Other,
+}
 
-pub struct Dyn<T: ?Sized>(Unique<T>);
-impl<T> Dyn<T> {
-    pub fn new(x: T) -> Self {
-        unsafe {
-            let t_ptr = KERNEL_HEAP.lock().alloc::<T>(core::mem::size_of::<T>());
-            t_ptr.write(x);
-            Self(Unique::new_unchecked(t_ptr))
+pub type Addr = *mut u8;
+
+pub struct Heap {
+    entries: Unique<[u8]>,
+    count: usize,
+    start: Addr,
+}
+
+impl Heap {
+    pub fn new(entries: u32, count: usize, start: u32) -> Self {
+        if count == 0 {
+            panic!("Count is 0");
+        }
+
+        if start % HEAP_BLOCK_SIZE != 0 {
+            panic!("start % HEAP_BLOCK_SIZE");
+        }
+
+        let entries = unsafe {
+            Unique::new_unchecked(ptr::slice_from_raw_parts_mut(entries as *mut u8, count))
+        };
+
+        unsafe { ptr::write_bytes(entries.as_ptr() as *mut u8, BLOCK_FREE, count) };
+
+        Self {
+            entries,
+            count,
+            start: start as Addr,
         }
     }
 
-    pub fn drop(self) {
-        unsafe { KERNEL_HEAP.lock().free::<T>(self.0.as_ptr()) }
+    fn block_to_addr(&self, block: usize) -> Addr {
+        (self.start as u32 + block as u32 * HEAP_BLOCK_SIZE) as Addr
     }
-}
-
-impl<T> Deref for Dyn<T> {
-    type Target = T;
-    fn deref(&self) -> &Self::Target {
-        unsafe { self.0.as_ref() }
+    fn addr_to_block(&self, addr: Addr) -> usize {
+        assert!(addr > self.start);
+        (addr as usize - self.start as usize) / (HEAP_BLOCK_SIZE as usize)
     }
-}
 
-impl<T> DerefMut for Dyn<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { self.0.as_mut() }
-    }
-}
-
-pub struct Box<T: ?Sized>(Unique<T>);
-impl<T> Box<T> {
-    pub fn new(x: T) -> Self {
-        unsafe {
-            let t_ptr = KERNEL_HEAP.lock().alloc::<T>(core::mem::size_of::<T>());
-            t_ptr.write(x);
-            Self(Unique::new_unchecked(t_ptr))
+    fn mark_blocks_taken(&mut self, start_block: usize, total_blocks: usize) {
+        if total_blocks == 1 {
+            unsafe {
+                self.entries.as_mut()[start_block] = BLOCK_TAKEN | BLOCK_FIRST;
+            }
+            return;
         }
-    }
-}
 
-impl<T: ?Sized> Drop for Box<T> {
-    fn drop(&mut self) {
-        unsafe { KERNEL_HEAP.lock().free::<T>(self.0.as_ptr()) }
-    }
-}
-
-impl<T> Deref for Box<T> {
-    type Target = T;
-    fn deref(&self) -> &Self::Target {
-        unsafe { core::mem::transmute::<Unique<T>, &T>(self.0) }
-    }
-}
-
-impl<T> DerefMut for Box<T> {
-    fn deref_mut(&mut self) -> &mut Self::Target {
-        unsafe { core::mem::transmute::<Unique<T>, &mut T>(self.0) }
-    }
-}
-
-#[derive(Clone)]
-pub struct Vec<T: Sized> {
-    data: Unique<T>,
-    cap: usize,
-    len: isize,
-}
-
-const DEFAULT_VEC_CAP: usize = 16;
-
-impl<T: Copy> Vec<T> {
-    pub fn new() -> Self {
         unsafe {
-            let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
-                KERNEL_HEAP
-                    .lock()
-                    .alloc(DEFAULT_VEC_CAP * core::mem::size_of::<T>()),
+            self.entries.as_mut()[start_block] = BLOCK_TAKEN | BLOCK_FIRST | BLOCK_HAS_NEXT;
+            ptr::write_bytes(
+                (self.entries.as_ptr() as *mut u8).offset(start_block as isize + 1),
+                BLOCK_TAKEN | BLOCK_HAS_NEXT,
+                total_blocks - 2,
             );
+            self.entries.as_mut()[start_block + total_blocks - 1] = BLOCK_TAKEN | BLOCK_FIRST;
+        }
+    }
 
-            Self {
-                data: Unique::new_unchecked(t_ptr),
-                cap: DEFAULT_VEC_CAP,
-                len: 0,
+    fn mark_blocks_free(&mut self, start_block: usize) {
+        for i in start_block..self.count {
+            let entry = unsafe {
+                let _entry = self.entries.as_ref()[i];
+                self.entries.as_mut()[i] = BLOCK_FREE;
+                _entry
+            };
+
+            if entry & BLOCK_HAS_NEXT == 0 {
+                break;
             }
         }
     }
 
-    pub fn with_capacity(cap: usize) -> Self {
-        unsafe {
-            let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
-                KERNEL_HEAP.lock().alloc(cap * core::mem::size_of::<T>()),
-            );
+    fn entry_type(entries: Unique<[u8]>, offset: usize) -> u8 {
+        unsafe { entries.as_ref()[offset] & 0x0f }
+    }
 
-            Self {
-                data: Unique::new_unchecked(t_ptr),
-                cap,
-                len: 0,
+    fn get_free_block(&self, count: usize) -> Result<usize, MemoryError> {
+        let mut bc = 0;
+        let mut bs: isize = -1;
+
+        for i in 0..self.count {
+            if Self::entry_type(self.entries, i) != BLOCK_FREE {
+                bc = 0;
+                bs = -1;
+                continue;
+            }
+
+            if bs == -1 {
+                bs = i as isize;
+            }
+
+            bc += 1;
+            if bc == count {
+                break;
             }
         }
-    }
-
-    fn grow(&mut self) {
-        unsafe {
-            self.data = Unique::new_unchecked(core::mem::transmute::<*mut u8, *mut T>(
-                KERNEL_HEAP
-                    .lock()
-                    .realloc(self.data.as_ptr() as *mut u8, 2 * self.cap),
-            ));
-        }
-        self.cap *= 2;
-    }
-
-    pub fn push(&mut self, x: T) {
-        if self.len as usize == self.cap {
-            self.grow()
+        if bs == -1 {
+            return Err(MemoryError::OutOfMemory);
         }
 
-        unsafe {
-            *self.data.as_ptr().offset(self.len + 1) = x;
+        Ok(bs as usize)
+    }
+
+    fn alloc_blocks(&mut self, block_count: usize) -> *mut u8 {
+        let _s = self.get_free_block(block_count).unwrap();
+
+        let addr = self.block_to_addr(_s);
+        self.mark_blocks_taken(_s, block_count);
+
+        addr
+    }
+
+    fn copy_block(&mut self, src: usize, dst: usize) {
+        let src = self.block_to_addr(src);
+        let dst = self.block_to_addr(dst);
+
+        for i in 0..HEAP_BLOCK_SIZE as isize {
+            unsafe { *dst.offset(i) = *src.offset(i) }
         }
-        self.len += 1;
     }
 
-    pub fn pop(&mut self) -> Option<T> {
-        if self.len == 0 {
-            return None;
+    fn copy_blocks(&mut self, src: usize, dst: usize, count: usize) {
+        for i in 0..count {
+            self.copy_block(src + i, dst + i)
         }
-
-        let x = unsafe { *self.data.as_ptr().offset(self.len) };
-        self.len -= 1;
-
-        Some(x)
     }
 
-    pub fn clear(&mut self) {
-        self.len = 0;
-    }
-}
-impl<T: Copy> Default for Vec<T> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<T: Sized> Drop for Vec<T> {
-    fn drop(&mut self) {
-        unsafe { KERNEL_HEAP.lock().free(self.data.as_ptr()) }
-    }
-}
-impl<T> Index<isize> for Vec<T> {
-    type Output = T;
-    fn index(&self, index: isize) -> &Self::Output {
-        let index = if index < 0 {
-            self.len - index - 1
-        } else {
-            index
-        };
-
-        unsafe { self.data.as_ptr().offset(index).as_ref().unwrap() }
-    }
-}
-
-impl<T> IndexMut<isize> for Vec<T> {
-    fn index_mut(&mut self, index: isize) -> &mut Self::Output {
-        let index = if index < 0 {
-            self.len - index - 1
-        } else {
-            index
-        };
-        unsafe { self.data.as_ptr().offset(index).as_mut().unwrap() }
-    }
-}
-
-impl<T: Copy> FromIterator<T> for Vec<T> {
-    fn from_iter<I: IntoIterator<Item = T>>(iter: I) -> Self {
-        let mut vec = Vec::new();
-        for element in iter {
-            vec.push(element);
+    fn align_block(val: usize) -> usize {
+        if val % HEAP_BLOCK_SIZE as usize == 0 {
+            return val;
         }
 
-        vec
+        val + val % HEAP_BLOCK_SIZE as usize
     }
-}
 
-pub struct DynArray<T>(Vec<T>);
-impl<T: Copy> DynArray<T> {
-    pub fn new(cap: usize) -> Self {
-        Self(Vec::with_capacity(cap))
+    pub(super) fn alloc<T>(&mut self, size: usize) -> *mut T {
+        self.alloc_blocks(Self::align_block(size)).cast()
     }
-}
 
-impl<T> Index<isize> for DynArray<T> {
-    type Output = T;
-    fn index(&self, index: isize) -> &Self::Output {
-        self.0.index(index)
+    pub(super) fn realloc(&mut self, old: Addr, size: usize) -> Addr {
+        let count = Self::align_block(size);
+        let new = self.alloc_blocks(count);
+        self.copy_blocks(self.addr_to_block(new), self.addr_to_block(old), count);
+
+        new
     }
-}
 
-impl<T> IndexMut<isize> for DynArray<T> {
-    fn index_mut(&mut self, index: isize) -> &mut Self::Output {
-        self.0.index_mut(index)
+    pub(super) fn free<T: ?Sized>(&mut self, ptr: *mut T) {
+        let start_block = self.addr_to_block(ptr.cast());
+        self.mark_blocks_free(start_block);
     }
 }

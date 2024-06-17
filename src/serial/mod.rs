@@ -16,7 +16,7 @@ impl SerialPort {
         // Configure the baud rate
         outb(SERIAL_PORT + 1, 0x00);
         outb(SERIAL_PORT + 3, 0x80);
-        outb(SERIAL_PORT + 0, 0x03);
+        outb(SERIAL_PORT, 0x03);
         outb(SERIAL_PORT + 1, 0x00);
         outb(SERIAL_PORT + 3, 0x03);
         outb(SERIAL_PORT + 2, 0xC7);

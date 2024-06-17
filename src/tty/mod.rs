@@ -1,4 +1,5 @@
-use crate::types::Global;
+use crate::sync::Global;
+use core::fmt::{self, Write};
 
 const VGA_WIDTH: usize = 80;
 const VGA_HEIGHT: usize = 25;
@@ -95,6 +96,15 @@ pub fn init_screen() {
     unsafe { TERMINAL.lock().init() };
 }
 
-pub fn print(msg: &str) {
-    unsafe { TERMINAL.lock().write(msg) };
+impl Write for TypeWriter {
+    fn write_str(&mut self, s: &str) -> fmt::Result {
+        self.write(s);
+        Ok(())
+    }
+}
+
+pub fn print(args: fmt::Arguments) {
+    use core::fmt::Write;
+
+    unsafe { TERMINAL.lock().write_fmt(args).unwrap() }
 }

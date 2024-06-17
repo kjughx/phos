@@ -1,6 +1,6 @@
 #ifndef _MEMORY_H_
 #define _MEMORY_H_
-#include "../common.h"
+#include "common.h"
 
 /* @brief Initialize a region of memory
  *

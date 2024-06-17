@@ -1,9 +1,9 @@
-use crate::memory::Vec;
+use crate::boxed::Vec;
 
 pub struct _Path<'a>(Vec<&'a str>);
 
 pub struct Path<'a> {
-    disk_id: Option<usize>, // If this is None, the path is empty or invalid
+    pub disk_id: Option<usize>, // If this is None, the path is empty or invalid
     parts: _Path<'a>,
 }
 
