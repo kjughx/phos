@@ -22,8 +22,9 @@ pub mod string;
 pub mod sync;
 pub mod tty;
 
-pub use boxed::Box;
-pub use boxed::Dyn;
+pub use boxed::r#box::Box;
+pub use boxed::r#dyn::Dyn;
+pub use boxed::vec::{DynArray, Vec};
 
 pub struct Addr(pub u32);
 

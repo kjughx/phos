@@ -1,10 +1,8 @@
-use crate::boxed::Vec;
-
-pub struct _Path<'a>(Vec<&'a str>);
+use crate::{println, string::String, trace, Vec};
 
 pub struct Path<'a> {
     pub disk_id: Option<usize>, // If this is None, the path is empty or invalid
-    parts: _Path<'a>,
+    parts: Vec<&'a str>,
 }
 
 impl<'a> Path<'a> {
@@ -14,11 +12,33 @@ impl<'a> Path<'a> {
             _ => None,
         };
 
-        let parts = path.split('/').collect();
+        let parts = path[2..]
+            .split('/')
+            .filter(|part| !part.is_empty())
+            .collect();
 
-        Self {
-            disk_id,
-            parts: _Path(parts),
-        }
+        trace!("{:?}", parts);
+
+        Self { disk_id, parts }
+    }
+    pub fn join(&mut self, _other: Path) {
+        todo!()
+    }
+    pub fn parts(&self) -> &Vec<&'a str> {
+        &self.parts
+    }
+}
+
+impl<'a> From<&'a [u8]> for Path<'a> {
+    fn from(_value: &'a [u8]) -> Self {
+        todo!()
+    }
+}
+
+pub struct PathBuf(String);
+
+impl PathBuf {
+    pub fn new(_path: &String) -> Self {
+        todo!()
     }
 }

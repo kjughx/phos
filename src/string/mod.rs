@@ -1,4 +1,4 @@
-use crate::boxed::Vec;
+use crate::Vec;
 
 #[derive(Clone)]
 pub struct String(Vec<u8>);
@@ -18,5 +18,11 @@ impl Default for String {
 impl From<&str> for String {
     fn from(value: &str) -> Self {
         Self(value.bytes().collect())
+    }
+}
+
+impl<'a> From<&'a String> for &'a str {
+    fn from(val: &'a String) -> Self {
+        unsafe { core::str::from_utf8_unchecked(val.0.as_slice()) }
     }
 }
