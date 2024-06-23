@@ -50,7 +50,7 @@ impl Heap {
         (self.start as u32 + block as u32 * HEAP_BLOCK_SIZE) as Addr
     }
     fn addr_to_block(&self, addr: Addr) -> usize {
-        assert!(addr > self.start);
+        debug_assert!(addr >= self.start, "{addr:#?}");
         (addr as usize - self.start as usize) / (HEAP_BLOCK_SIZE as usize)
     }
 
@@ -119,10 +119,10 @@ impl Heap {
     }
 
     fn alloc_blocks(&mut self, block_count: usize) -> *mut u8 {
-        let _s = self.get_free_block(block_count).unwrap();
+        let start_block = self.get_free_block(block_count).unwrap();
 
-        let addr = self.block_to_addr(_s);
-        self.mark_blocks_taken(_s, block_count);
+        let addr = self.block_to_addr(start_block);
+        self.mark_blocks_taken(start_block, block_count);
 
         addr
     }
