@@ -4,6 +4,8 @@ use core::{
     ptr::Unique,
 };
 
+use crate::trace;
+
 use super::KERNEL_HEAP as HEAP;
 
 pub struct Dyn<T: ?Sized>(Unique<T>);
@@ -17,6 +19,7 @@ impl<T> Dyn<T> {
     }
 
     pub fn drop(self) {
+        trace!("Dropping Dyn");
         unsafe { HEAP.lock().free::<T>(self.0.as_ptr()) }
     }
 }

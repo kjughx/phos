@@ -1,11 +1,13 @@
 use core::ptr::{self, Unique};
 
-pub const HEAP_BLOCK_SIZE: u32 = 4096;
+use crate::trace;
+
+pub const HEAP_BLOCK_SIZE: usize = 4096;
 
 const BLOCK_FREE: u8 = 1 << 0;
 const BLOCK_TAKEN: u8 = 1 << 1;
-const BLOCK_FIRST: u8 = 1 << 4;
-const BLOCK_HAS_NEXT: u8 = 1 << 5;
+const BLOCK_FIRST: u8 = 1 << 2;
+const BLOCK_HAS_NEXT: u8 = 1 << 3;
 
 #[derive(Debug)]
 enum MemoryError {
@@ -17,6 +19,18 @@ enum MemoryError {
 
 pub type Addr = *mut u8;
 
+use crate::sync::Global;
+
+const KERNEL_HEAP_SIZE: usize = 100 * 1024 * 1024; // 100MB
+const KERNEL_HEAP_START: usize = 0x01000000;
+const KERNEL_ENTRIES_START: usize = 0x00007E00;
+
+#[rustfmt::skip]
+static mut KERNEL_HEAP: Global<Heap> = Global::new(
+    || Heap::new(KERNEL_ENTRIES_START, KERNEL_HEAP_SIZE, KERNEL_HEAP_START),
+    "KERNEL_HEAP",
+);
+
 pub struct Heap {
     entries: Unique<[u8]>,
     count: usize,
@@ -24,30 +38,25 @@ pub struct Heap {
 }
 
 impl Heap {
-    pub fn new(entries: u32, count: usize, start: u32) -> Self {
-        if count == 0 {
-            panic!("Count is 0");
-        }
-
-        if start % HEAP_BLOCK_SIZE != 0 {
-            panic!("start % HEAP_BLOCK_SIZE");
-        }
+    pub fn new(entries: usize, size: usize, start: usize) -> Self {
+        let real_start = start + start % HEAP_BLOCK_SIZE;
 
         let entries = unsafe {
-            Unique::new_unchecked(ptr::slice_from_raw_parts_mut(entries as *mut u8, count))
+            Unique::new_unchecked(ptr::slice_from_raw_parts_mut(
+                entries as *mut u8,
+                size / HEAP_BLOCK_SIZE,
+            ))
         };
-
-        unsafe { ptr::write_bytes(entries.as_ptr() as *mut u8, BLOCK_FREE, count) };
 
         Self {
             entries,
-            count,
-            start: start as Addr,
+            count: size,
+            start: real_start as Addr,
         }
     }
 
     fn block_to_addr(&self, block: usize) -> Addr {
-        (self.start as u32 + block as u32 * HEAP_BLOCK_SIZE) as Addr
+        (self.start as usize + block * HEAP_BLOCK_SIZE) as Addr
     }
     fn addr_to_block(&self, addr: Addr) -> usize {
         debug_assert!(addr >= self.start, "{addr:#?}");
@@ -96,6 +105,7 @@ impl Heap {
         let mut bs: isize = -1;
 
         for i in 0..self.count {
+            trace!("{}", Self::entry_type(self.entries, i));
             if Self::entry_type(self.entries, i) != BLOCK_FREE {
                 bc = 0;
                 bs = -1;
@@ -143,11 +153,13 @@ impl Heap {
     }
 
     fn align_block(val: usize) -> usize {
-        if val % HEAP_BLOCK_SIZE as usize == 0 {
-            return val;
+        if val < HEAP_BLOCK_SIZE as usize {
+            return 1;
+        } else if val % HEAP_BLOCK_SIZE as usize == 0 {
+            return val / HEAP_BLOCK_SIZE as usize;
+        } else {
+            return val / HEAP_BLOCK_SIZE as usize + 1;
         }
-
-        val + val % HEAP_BLOCK_SIZE as usize
     }
 
     pub(super) fn alloc<T>(&mut self, size: usize) -> *mut T {

@@ -14,5 +14,5 @@ opt-level = 1
 # the profile used for `cargo build --release`
 [profile.release]
 panic = "abort" # disable stack unwinding on panic
-opt-level = 1
+opt-level = "s"
 

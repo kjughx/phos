@@ -6,6 +6,8 @@ use core::{
     ptr::Unique,
 };
 
+use crate::trace;
+
 use super::KERNEL_HEAP as HEAP;
 
 pub struct Box<T: ?Sized>(Unique<T>);
@@ -24,6 +26,7 @@ impl<T: ?Sized + Unsize<U>, U: ?Sized> DispatchFromDyn<Box<U>> for Box<T> {}
 
 impl<T: ?Sized> Drop for Box<T> {
     fn drop(&mut self) {
+        trace!("Droping box");
         unsafe { HEAP.lock().free::<T>(self.0.as_ptr()) }
     }
 }

@@ -16,6 +16,7 @@ pub mod gdt;
 pub mod idt;
 pub mod io;
 pub mod memory;
+pub mod path;
 pub mod serial;
 pub mod start;
 pub mod string;

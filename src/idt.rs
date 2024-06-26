@@ -5,4 +5,3 @@ extern "C" {
 pub fn idt_init() {
     unsafe { _idt_init() }
 }
-

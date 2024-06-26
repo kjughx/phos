@@ -5,4 +5,3 @@ extern "C" {
 pub fn gdt_init() {
     unsafe { _gdt_init() }
 }
-

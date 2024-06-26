@@ -85,76 +85,77 @@ impl<T> DerefMut for MutexGuard<'_, T> {
     }
 }
 
-enum _Global<T, F> {
+enum State<T, F> {
     Uninit(F),
     Init(T),
     Poisoned,
 }
 pub struct Global<T, F = fn() -> T> {
-    global: UnsafeCell<_Global<T, F>>,
+    data: UnsafeCell<State<T, F>>,
     lock: Lock,
 }
 
 pub struct GlobalUnlocked<'a, T: 'a, F: FnOnce() -> T = fn() -> T> {
-    locked: &'a Global<T, F>,
+    global: &'a Global<T, F>,
 }
 
 impl<'a, T: 'a, F: FnOnce() -> T> GlobalUnlocked<'a, T, F> {
     fn new(lock: &'a Global<T, F>) -> Self {
-        Self { locked: lock }
+        Self { global: lock }
     }
 
     pub fn unlock(&self) {
-        self.locked.lock.unlock();
+        self.global.lock.unlock();
     }
 
     fn inner(&self) -> &T {
-        let state = unsafe { &*self.locked.global.get() };
+        let state = unsafe { &*self.global.data.get() };
+
         match state {
-            _Global::Init(t) => t,
-            _Global::Uninit(_) => {
+            State::Init(data) => data,
+            State::Uninit(_) => {
                 Self::force_init(self);
-                let _Global::Init(t) = (unsafe { &*self.locked.global.get() }) else {
-                    unreachable!()
+                let State::Init(t) = (unsafe { &*self.global.data.get() }) else {
+                    unreachable!("State should be Init after forcing init")
                 };
                 t
             }
-            _Global::Poisoned => panic!(),
+            State::Poisoned => panic!("Poisoned Global"),
         }
     }
 
     fn inner_mut(&mut self) -> &mut T {
-        let state = unsafe { &mut *self.locked.global.get() };
+        let state = unsafe { &mut *self.global.data.get() };
         match state {
-            _Global::Init(t) => t,
-            _Global::Uninit(_) => {
+            State::Init(t) => t,
+            State::Uninit(_) => {
                 Self::force_init(self);
-                let _Global::Init(t) = (unsafe { &mut *self.locked.global.get() }) else {
+                let State::Init(t) = (unsafe { &mut *self.global.data.get() }) else {
                     unreachable!()
                 };
                 t
             }
-            _Global::Poisoned => panic!(),
+            State::Poisoned => panic!(),
         }
     }
 
     fn force_init(this: &Self) {
-        let state = unsafe { &mut *this.locked.global.get() };
+        let state = unsafe { &mut *this.global.data.get() };
 
-        let _Global::Uninit(f) = core::mem::replace(state, _Global::Poisoned) else {
+        let State::Uninit(f) = core::mem::replace(state, State::Poisoned) else {
             unreachable!()
         };
 
         let data = f();
 
-        unsafe { this.locked.global.get().write(_Global::Init(data)) };
+        unsafe { this.global.data.get().write(State::Init(data)) };
     }
 }
 
 impl<T, F: FnOnce() -> T> Global<T, F> {
     pub const fn new(f: F, id: &'static str) -> Self {
         Self {
-            global: UnsafeCell::new(_Global::Uninit(f)),
+            data: UnsafeCell::new(State::Uninit(f)),
             lock: Lock::new(id),
         }
     }

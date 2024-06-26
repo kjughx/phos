@@ -1,4 +1,4 @@
-use crate::{println, string::String, trace, Vec};
+use crate::{string::String, trace, Vec};
 
 pub struct Path<'a> {
     pub disk_id: Option<usize>, // If this is None, the path is empty or invalid

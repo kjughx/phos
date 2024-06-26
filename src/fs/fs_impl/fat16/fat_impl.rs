@@ -1,4 +1,4 @@
-use crate::{boxed::DynArray, disk::DiskStreamer};
+use crate::{disk::DiskStreamer, trace, DynArray};
 use core::mem;
 
 use super::fat_private::{FatDirectoryItem, FAT_DIRECTORY_ITEM_SIZE};
@@ -17,7 +17,7 @@ const FAT_FILE_ARCHIVED: u8 = 1 << 5;
 const FAT_FILE_DEVICE: u8 = 1 << 6;
 const FAT_FILE_RESERVERED: u8 = 1 << 7;
 
-#[repr(C, packed)]
+#[derive(Clone)]
 pub(super) struct FatDirectory {
     items: DynArray<FatDirectoryItem>,
     total: u32,
@@ -27,13 +27,13 @@ pub(super) struct FatDirectory {
 
 impl FatDirectory {
     pub fn new(streamer: &mut DiskStreamer, start: usize, count: usize) -> Self {
-        let mut items = DynArray::new(count);
-        for i in 0..count as isize {
-            items[i] = FatDirectoryItem::new(streamer, start);
-        }
-
         streamer.seek(start);
         let total = Self::get_total_items(streamer);
+
+        let mut items = DynArray::new(count);
+        for _ in 0..total as isize {
+            items.push(FatDirectoryItem::new(streamer))
+        }
 
         Self {
             items,
@@ -61,11 +61,31 @@ impl FatDirectory {
         streamer.seek(pos);
         count
     }
+
+    pub fn find(&self, streamer: &mut DiskStreamer, name: &str) -> Option<FatItem> {
+        for item in self.items.into_iter() {
+            if item.filename() == name {
+                return Some(FatItem::new(streamer, item));
+            }
+        }
+
+        None
+    }
 }
 
-enum FatItem {
+pub(super) enum FatItem {
     Directory(FatDirectory),
     File(FatDirectoryItem),
 }
 
-impl FatItem {}
+impl FatItem {
+    pub fn new(streamer: &mut DiskStreamer, item: &FatDirectoryItem) -> Self {
+        match item.attributes {
+            FAT_FILE_SUBDIRECTORY => {
+                let size = FatDirectoryItem::size(streamer);
+                FatItem::Directory(FatDirectory::new(streamer, item.first_cluster(), size))
+            }
+            _ => FatItem::File(*item),
+        }
+    }
+}

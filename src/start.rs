@@ -12,7 +12,7 @@ extern "C" fn _start() -> ! {
     unsafe {
         asm!(
             ".code32",
-            "mov ax, DATA_SEG",
+            "mov ax, 0x10",
             "mov ds, ax",
             "mov es, ax",
             "mov fs, ax",
@@ -38,9 +38,11 @@ extern "C" fn _start() -> ! {
 #[inline(never)]
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
-    let loc = info.location().unwrap(); // TODO: This might not always return Some(&Location)
-
-    trace!("Kernel panic: [{}:{}]", loc.file(), loc.line());
+    if let Some(loc) = info.location() {
+        trace!("Kernel panic: [{}:{}]", loc.file(), loc.line());
+    } else {
+        trace!("Kernel panic somwhere!");
+    }
 
     if let Some(msg) = info.payload().downcast_ref::<&str>() {
         trace!("{}", msg);

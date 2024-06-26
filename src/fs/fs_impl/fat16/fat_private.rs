@@ -1,4 +1,4 @@
-use crate::{disk::DiskStreamer, Addr};
+use crate::disk::{DiskStreamer, SECTOR_SIZE};
 
 #[repr(C, packed)]
 #[derive(Default, Clone, Copy)]
@@ -45,6 +45,14 @@ impl FatH {
 
         FatH::from(&buf)
     }
+
+    pub fn root(&self) -> usize {
+        let primary_header = self.primary_header;
+
+        (primary_header.fat_copies as usize * primary_header.sectors_per_fat as usize
+            + primary_header.reserved_sectors as usize)
+            * SECTOR_SIZE
+    }
 }
 
 pub const FAT_HEADER_SIZE: usize = core::mem::size_of::<FatH>();
@@ -73,15 +81,42 @@ pub struct FatDirectoryItem {
     pub filesize: u32,
 }
 
-impl FatDirectoryItem {
-    pub fn new(streamer: &mut DiskStreamer, start: usize) -> Self {
+impl<'a> FatDirectoryItem {
+    pub fn new(streamer: &mut DiskStreamer) -> Self {
         let mut buf = [0; FAT_DIRECTORY_ITEM_SIZE];
-        streamer.seek(start);
         streamer.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);
         FatDirectoryItem::from(&buf)
     }
-    pub fn first_cluster(&self) -> Addr {
-        Addr(self.high_16_bits_first_cluster as u32 | self.low_16_bits_first_cluster as u32)
+
+    pub fn first_cluster(&self) -> usize {
+        self.high_16_bits_first_cluster as usize | self.low_16_bits_first_cluster as usize
+    }
+
+    pub fn filename(&self) -> &str {
+        core::str::from_utf8(&self.filename).unwrap_or("").trim()
+    }
+
+    pub fn extension(&self) -> &str {
+        core::str::from_utf8(&self.extension).unwrap_or("").trim()
+    }
+
+    pub fn size(streamer: &mut DiskStreamer) -> usize {
+        let pos = streamer.pos(); // We have to rewind when done
+
+        const SIZE: usize = core::mem::size_of::<FatDirectoryItem>();
+        let mut buf: [u8; SIZE] = [0; SIZE];
+        let mut count = 0;
+        loop {
+            streamer.read(&mut buf, SIZE);
+            match buf[0] {
+                0 => break,
+                0xE5 => continue,
+                _ => count += 1,
+            }
+        }
+
+        streamer.seek(pos);
+        count
     }
 }
 

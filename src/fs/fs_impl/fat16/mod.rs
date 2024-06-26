@@ -1,31 +1,24 @@
 mod fat_impl;
 mod fat_private;
 
-use crate::{
-    disk::{Disk, DiskStreamer, SECTOR_SIZE},
-    fs::{path::Path, FileDescriptor, FileMode, FileSystem, IOError},
-    sync::Global,
-    Box, Dyn,
-};
-use core::mem;
+use crate::{disk::{Disk, DiskStreamer}, fs::{FileDescriptor, FileMode, FileSystem, IOError}, path::Path, sync::Global, Box, Dyn};
 
-use fat_impl::{FatDirectory, FAT16_SIGNATURE};
+use fat_impl::{FatDirectory, FatItem, FAT16_SIGNATURE};
 use fat_private::FatH;
 
 pub struct Fat16 {
     header: FatH,
-    root_dir: mem::MaybeUninit<FatDirectory>,
+    root_dir: FatDirectory,
     cluster_stream: DiskStreamer,
     fat_stream: DiskStreamer,
     directory_stream: DiskStreamer,
 }
 
 impl Fat16 {
-    pub fn new(disk_id: usize) -> Self {
-        // NOTE: Hardcoding the disk here.
+    pub(self) fn new(disk_id: usize, root_dir: FatDirectory) -> Self {
         Self {
             header: FatH::default(),
-            root_dir: mem::MaybeUninit::uninit(),
+            root_dir,
             cluster_stream: DiskStreamer::new(disk_id),
             fat_stream: DiskStreamer::new(disk_id),
             directory_stream: DiskStreamer::new(disk_id),
@@ -34,38 +27,60 @@ impl Fat16 {
 
     pub fn resolve(disk: &Global<Disk>) -> Result<Dyn<dyn FileSystem>, IOError> {
         let id = { disk.lock().id };
-        let mut fat16 = Dyn::new(Self::new(id));
-
+        let mut directory_stream = DiskStreamer::new(id);
         let header = FatH::new(id);
-
         if header.extended_header.signature != FAT16_SIGNATURE {
             return Err(IOError::NotOurFS);
         }
 
-        fat16.header = header;
-        let start = fat16.root_start();
-        let size = fat16.header.primary_header.root_dir_entries as usize;
-        fat16.root_dir =
-            mem::MaybeUninit::new(FatDirectory::new(&mut fat16.directory_stream, start, size));
+        let root_start = header.root();
+        let size = header.primary_header.root_dir_entries as usize;
+        let root_dir = FatDirectory::new(&mut directory_stream, root_start, size);
 
-        Ok(fat16)
+        Ok(Dyn::new(Self {
+            header,
+            root_dir,
+            directory_stream,
+            cluster_stream: DiskStreamer::new(id),
+            fat_stream: DiskStreamer::new(id),
+        }))
     }
 
-    fn root_start(&self) -> usize {
-        let primary_header = self.header.primary_header;
+    fn root(&self) -> FatDirectory {
+        // TODO: Don't want to have to clone it
+        self.root_dir.clone()
+    }
 
-        (primary_header.fat_copies as usize * primary_header.sectors_per_fat as usize
-            + primary_header.reserved_sectors as usize)
-            * SECTOR_SIZE
+    fn get_directory_entry(&mut self, path: Path) -> Option<FatItem> {
+        let mut iter = path.parts().into_iter();
+
+        let root = self.root();
+        let part = iter.next()?;
+
+        let mut current = root.find(&mut self.cluster_stream, part)?;
+
+        for next in iter {
+            match current {
+                FatItem::Directory(ref dir) => {
+                    current = dir.find(&mut self.cluster_stream, next)?
+                }
+                FatItem::File(_) => return None,
+            }
+        }
+
+        Some(current)
     }
 }
 
-static mut FAT16: Global<Fat16> = Global::new(|| Fat16::new(0), "FAT16");
-
 impl FileSystem for Fat16 {
-    fn open(&self, _path: Path, _mode: FileMode) -> Result<Box<dyn FileDescriptor>, IOError> {
-        // TODO: Handle different modes
-        todo!()
+    fn open(&mut self, path: Path, _mode: FileMode) -> Result<Box<dyn FileDescriptor>, IOError> {
+        let Some(entry) = self.get_directory_entry(path) else {
+            return Err(IOError::NoSuchFile);
+        };
+
+        let desc: Box<dyn FileDescriptor> = Box::new(FatFileDescriptor::new(entry));
+
+        Ok(desc)
     }
 
     fn read(&self, _fd: Box<dyn FileDescriptor>) {
@@ -86,4 +101,23 @@ impl FileSystem for Fat16 {
     fn close(&self) {
         todo!()
     }
+}
+
+pub struct FatFileDescriptor {
+    item: FatItem,
+    pos: u32,
+}
+
+impl FatFileDescriptor {
+    fn new(item: FatItem) -> Self {
+        Self { item, pos: 0 }
+    }
+}
+
+impl FileDescriptor for FatFileDescriptor {
+    fn read(&self, size: usize, count: usize, buf: &mut [u8]) {
+        todo!()
+    }
+
+    fn write(&mut self, size: usize, count: usize, buf: &[u8]) {}
 }

@@ -53,8 +53,9 @@ impl Disk {
         outb(0x1F7, 0x20);
 
         spinwhile!(insb(0x1F7) & 0x08 == 0);
+        insw(0x1F7); // garbage
 
-        for i in 0..SECTOR_SIZE / 2 - 1 {
+        for i in 0..(SECTOR_SIZE / 2) {
             let val = insw(0x1F0);
             buf[2 * i] = (val & 0xff) as u8;
             buf[2 * i + 1] = (val >> 8) as u8;
@@ -113,7 +114,8 @@ impl DiskStreamer {
                     .read_sector(sector as u32, &mut local);
             }
 
-            buf[bytes_read..(bytes_to_read + bytes_read)].clone_from_slice(&local[..bytes_to_read]);
+            buf[bytes_read..(bytes_to_read + bytes_read)]
+                .clone_from_slice(&local[offset..(offset + bytes_to_read)]);
 
             self.pos += bytes_to_read;
             bytes_read += bytes_to_read;

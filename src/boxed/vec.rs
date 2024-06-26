@@ -27,12 +27,15 @@ impl<'a, T> Iterator for VecIter<'a, T> {
     }
 }
 
+use crate::trace;
+
 use super::KERNEL_HEAP as HEAP;
 
 const DEFAULT_VEC_CAP: usize = 16;
 
 impl<T: Copy> Vec<T> {
     pub fn new() -> Self {
+        trace!("Creating Vec with {} capacity", DEFAULT_VEC_CAP);
         unsafe {
             let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
                 HEAP.lock()
@@ -131,9 +134,11 @@ impl<T: Copy> Default for Vec<T> {
 
 impl<T: Sized> Drop for Vec<T> {
     fn drop(&mut self) {
+        trace!("Dropping Vec");
         unsafe { HEAP.lock().free(self.data.as_ptr()) }
     }
 }
+
 impl<T> Index<isize> for Vec<T> {
     type Output = T;
     fn index(&self, index: isize) -> &Self::Output {
@@ -184,6 +189,7 @@ impl<'a, T> IntoIterator for &'a Vec<T> {
 pub struct DynArray<T>(Vec<T>);
 impl<T: Copy> DynArray<T> {
     pub fn new(cap: usize) -> Self {
+        trace!("Creating DynArray with {} capacity", cap);
         Self(Vec::with_capacity(cap))
     }
     pub fn as_slice(&self) -> &[T] {

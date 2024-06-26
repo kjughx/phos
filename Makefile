@@ -17,13 +17,13 @@ ASM_SRCS := $(filter-out src/asm/boot/boot.asm, $(shell find src -name "*.asm"))
 OBJS = $(patsubst src/%.asm, $(OBJ)/%.asm.o, $(ASM_SRCS))
 
 all: prelude $(BINS)
-	rm -f $(BIN)/os.bin
-	dd if=$(BIN)/boot.bin >> $(BIN)/os.bin
-	dd if=$(BIN)/kernel.bin >> $(BIN)/os.bin
-	dd if=/dev/zero bs=1024 count=1024 >> $(BIN)/os.bin
-	sudo mount -t vfat $(BIN)/os.bin /mnt/d
-	echo "Hello, World!" | sudo tee /mnt/d/hello.txt
-	sudo umount /mnt/d
+	@rm -f $(BIN)/os.bin
+	@dd status=none if=$(BIN)/boot.bin >> $(BIN)/os.bin
+	@dd status=none if=$(BIN)/kernel.bin >> $(BIN)/os.bin
+	@dd status=none if=/dev/zero bs=1024 count=1024 >> $(BIN)/os.bin
+	@sudo mount -t vfat $(BIN)/os.bin /mnt/d
+	@echo "Hello, World!" | sudo tee /mnt/d/hello 1>/dev/null
+	@sudo umount /mnt/d
 
 $(BIN)/boot.bin: $(SRC)/asm/boot/boot.asm
 	nasm -f bin $< -o $@
@@ -36,9 +36,9 @@ $(BIN)/kernel.bin: rust
 
 .PHONY: rust
 rust: $(OBJS) $(R_SRCS) $(C_SRCS)
-	cargo build
-	cp $(OBJ)/i686-unknown-none/debug/ruix build/kernelfull.o
-	objcopy --target elf32-i386 -O binary build/kernelfull.o $(BIN)/kernel.bin
+	@cargo build --message-format short
+	@cp $(OBJ)/i686-unknown-none/debug/ruix build/kernelfull.o
+	@objcopy --target elf32-i386 -O binary build/kernelfull.o $(BIN)/kernel.bin
 
 .PHONY: prelude
 prelude:
