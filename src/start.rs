@@ -44,12 +44,7 @@ fn panic(info: &core::panic::PanicInfo) -> ! {
         trace!("Kernel panic somwhere!");
     }
 
-    if let Some(msg) = info.payload().downcast_ref::<&str>() {
-        trace!("{}", msg);
-    } else if let Some(msg) = info.message() {
-        trace!("{}", msg);
-    } else {
-        trace!("{}", "Kernel Panic");
-    }
+    trace!("{}", info.message());
+
     unsafe { asm!("hlt", options(noreturn)) }
 }

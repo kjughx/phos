@@ -1,13 +1,11 @@
 use core::ptr::{self, Unique};
 
-use crate::trace;
-
 pub const HEAP_BLOCK_SIZE: usize = 4096;
 
-const BLOCK_FREE: u8 = 1 << 0;
-const BLOCK_TAKEN: u8 = 1 << 1;
-const BLOCK_FIRST: u8 = 1 << 2;
-const BLOCK_HAS_NEXT: u8 = 1 << 3;
+const BLOCK_FREE: u8 = 0;
+const BLOCK_TAKEN: u8 = 1 << 0;
+const BLOCK_FIRST: u8 = 1 << 1;
+const BLOCK_HAS_NEXT: u8 = 1 << 2;
 
 #[derive(Debug)]
 enum MemoryError {
@@ -50,7 +48,7 @@ impl Heap {
 
         Self {
             entries,
-            count: size,
+            count: size / HEAP_BLOCK_SIZE,
             start: real_start as Addr,
         }
     }
@@ -105,7 +103,6 @@ impl Heap {
         let mut bs: isize = -1;
 
         for i in 0..self.count {
-            trace!("{}", Self::entry_type(self.entries, i));
             if Self::entry_type(self.entries, i) != BLOCK_FREE {
                 bc = 0;
                 bs = -1;
