@@ -21,6 +21,8 @@ pub extern "C" fn kernel_main() -> ! {
 
     assert!(fs::open(path::Path::new("0:/HELLO"), fs::FileMode::ReadOnly).is_ok());
 
+    println!("Hello, World!");
+
     loop {
         hint::spin_loop()
     }

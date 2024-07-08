@@ -1,15 +1,15 @@
+use crate::prelude::*;
+
 use core::{
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
     ptr::Unique,
 };
 
-use crate::trace;
-
 use super::KERNEL_HEAP as HEAP;
 
-pub struct Dyn<T: ?Sized>(Unique<T>);
-impl<T> Dyn<T> {
+pub struct _Dyn<T: ?Sized>(Unique<T>);
+impl<T> _Dyn<T> {
     pub fn new(x: T) -> Self {
         unsafe {
             let t_ptr = HEAP.lock().alloc::<T>(core::mem::size_of::<T>());
@@ -24,16 +24,16 @@ impl<T> Dyn<T> {
     }
 }
 
-impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<Dyn<U>> for Dyn<T> {}
+impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<_Dyn<U>> for _Dyn<T> {}
 
-impl<T: ?Sized> Deref for Dyn<T> {
+impl<T: ?Sized> Deref for _Dyn<T> {
     type Target = T;
     fn deref(&self) -> &T {
         unsafe { self.0.as_ref() }
     }
 }
 
-impl<T: ?Sized> DerefMut for Dyn<T> {
+impl<T: ?Sized> DerefMut for _Dyn<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.0.as_mut() }
     }

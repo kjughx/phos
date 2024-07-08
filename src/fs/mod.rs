@@ -1,9 +1,9 @@
-use crate::path::Path;
-mod fs_impl;
+use crate::prelude::*;
 
 use crate::disk::{get_disk, Disk};
-use crate::sync::Global;
-use crate::Box;
+use crate::path::Path;
+
+mod fs_impl;
 use fs_impl::fat16::Fat16;
 
 pub const FILESYSTEM_COUNT: usize = 1;

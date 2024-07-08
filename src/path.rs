@@ -1,4 +1,6 @@
-use crate::{string::String, trace, Vec};
+use crate::prelude::*;
+
+use crate::string::String;
 
 pub struct Path<'a> {
     pub disk_id: Option<usize>, // If this is None, the path is empty or invalid
@@ -16,8 +18,6 @@ impl<'a> Path<'a> {
             .split('/')
             .filter(|part| !part.is_empty())
             .collect();
-
-        trace!("{:?}", parts);
 
         Self { disk_id, parts }
     }

@@ -1,7 +1,13 @@
+use crate::prelude::*;
+
 mod fat_impl;
 mod fat_private;
 
-use crate::{disk::{Disk, DiskStreamer}, fs::{FileDescriptor, FileMode, FileSystem, IOError}, path::Path, sync::Global, Box, Dyn};
+use crate::{
+    disk::{Disk, DiskStreamer},
+    fs::{FileDescriptor, FileMode, FileSystem, IOError},
+    path::Path,
+};
 
 use fat_impl::{FatDirectory, FatItem, FAT16_SIGNATURE};
 use fat_private::FatH;

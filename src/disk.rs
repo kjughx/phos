@@ -1,12 +1,12 @@
+use crate::prelude::*;
+
 use core::ptr;
 
-use crate::fs::FileSystem;
-use crate::spinwhile;
-use crate::sync::Global;
-
-use crate::Dyn;
-
-use crate::io::{insb, insw, outb};
+use crate::{
+    fs::FileSystem,
+    io::{insb, insw, outb},
+    spinwhile,
+};
 
 pub const SECTOR_SIZE: usize = 512;
 pub struct Sector(pub usize);

@@ -90,17 +90,17 @@ enum State<T, F> {
     Init(T),
     Poisoned,
 }
-pub struct Global<T, F = fn() -> T> {
+pub struct _Global<T, F = fn() -> T> {
     data: UnsafeCell<State<T, F>>,
     lock: Lock,
 }
 
 pub struct GlobalUnlocked<'a, T: 'a, F: FnOnce() -> T = fn() -> T> {
-    global: &'a Global<T, F>,
+    global: &'a _Global<T, F>,
 }
 
 impl<'a, T: 'a, F: FnOnce() -> T> GlobalUnlocked<'a, T, F> {
-    fn new(lock: &'a Global<T, F>) -> Self {
+    fn new(lock: &'a _Global<T, F>) -> Self {
         Self { global: lock }
     }
 
@@ -152,7 +152,7 @@ impl<'a, T: 'a, F: FnOnce() -> T> GlobalUnlocked<'a, T, F> {
     }
 }
 
-impl<T, F: FnOnce() -> T> Global<T, F> {
+impl<T, F: FnOnce() -> T> _Global<T, F> {
     pub const fn new(f: F, id: &'static str) -> Self {
         Self {
             data: UnsafeCell::new(State::Uninit(f)),
@@ -185,4 +185,4 @@ impl<'a, T: 'a, F: FnOnce() -> T> DerefMut for GlobalUnlocked<'a, T, F> {
     }
 }
 
-unsafe impl<T, F: FnOnce() -> T> Sync for Global<T, F> {}
+unsafe impl<T, F: FnOnce() -> T> Sync for _Global<T, F> {}

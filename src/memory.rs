@@ -1,3 +1,5 @@
+use crate::prelude::*;
+
 use core::ptr::{self, Unique};
 
 pub const HEAP_BLOCK_SIZE: usize = 4096;
@@ -16,8 +18,6 @@ enum MemoryError {
 }
 
 pub type Addr = *mut u8;
-
-use crate::sync::Global;
 
 const KERNEL_HEAP_SIZE: usize = 100 * 1024 * 1024; // 100MB
 const KERNEL_HEAP_START: usize = 0x01000000;

@@ -1,4 +1,6 @@
-use crate::{disk::DiskStreamer, trace, DynArray};
+use crate::prelude::*;
+
+use crate::disk::DiskStreamer;
 use core::mem;
 
 use super::fat_private::{FatDirectoryItem, FAT_DIRECTORY_ITEM_SIZE};

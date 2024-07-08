@@ -1,4 +1,5 @@
-use crate::sync::Global;
+use crate::prelude::*;
+
 use core::fmt::{self, Write};
 
 const VGA_WIDTH: usize = 80;

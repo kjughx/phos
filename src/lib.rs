@@ -17,15 +17,14 @@ pub mod idt;
 pub mod io;
 pub mod memory;
 pub mod path;
+pub mod prelude;
 pub mod serial;
 pub mod start;
 pub mod string;
 pub mod sync;
 pub mod tty;
 
-pub use boxed::r#box::Box;
-pub use boxed::r#dyn::Dyn;
-pub use boxed::vec::{DynArray, Vec};
+pub use prelude::*;
 
 pub struct Addr(pub u32);
 
@@ -44,16 +43,16 @@ macro_rules! spinuntil {
 }
 
 #[macro_export]
-macro_rules! print {
+macro_rules! __print {
     ($($arg:tt)*) => {
         $crate::tty::print(format_args!($($arg)*));
     };
 }
 
 #[macro_export]
-macro_rules! println {
+macro_rules! __println {
     () => ($crate::print!("\n"));
-    ($fmt:expr) => ($crate::print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => ($crate::print!(
+    ($fmt:expr) => ($crate::__print!(concat!($fmt, "\n")));
+    ($fmt:expr, $($arg:tt)*) => ($crate::__print!(
         concat!($fmt, "\n"), $($arg)*));
 }
