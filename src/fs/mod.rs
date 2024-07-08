@@ -3,8 +3,10 @@ use crate::prelude::*;
 use crate::disk::{get_disk, Disk};
 use crate::path::Path;
 
-mod fs_impl;
-use fs_impl::fat16::Fat16;
+use core::any::Any;
+
+mod filesystems;
+use filesystems::fat16::Fat16;
 
 pub const FILESYSTEM_COUNT: usize = 1;
 
@@ -15,10 +17,18 @@ pub enum IOError {
     InvalidDisk,
     NoFS,
     NoSuchFile,
+    NotAFile,
+    InvalidArgument,
 }
 
 pub enum FileMode {
     ReadOnly,
+}
+
+pub enum SeekMode {
+    StartOfFile,
+    CurrentPosition,
+    EndOfFile,
 }
 
 pub trait FileSystem {
@@ -28,11 +38,13 @@ pub trait FileSystem {
     fn stat(&self);
     fn close(&self);
     fn name(&self) -> &str;
+    fn as_any(&self) -> &dyn Any;
 }
 
 pub trait FileDescriptor {
-    fn read(&self, size: usize, count: usize, buf: &mut [u8]);
-    fn write(&mut self, size: usize, count: usize, buf: &[u8]);
+    fn read(&self, size: usize, count: usize, buf: &mut [u8]) -> Result<(), IOError>;
+    fn write(&mut self, size: usize, count: usize, buf: &[u8]) -> Result<(), IOError>;
+    fn seek(&mut self, offset: isize, whence: SeekMode);
 }
 
 pub fn resolve(disk: &mut Global<Disk>) -> Result<(), IOError> {

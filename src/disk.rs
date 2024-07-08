@@ -29,13 +29,13 @@ pub enum DiskType {
 pub struct Disk {
     _disk_type: DiskType,
     pub sector_size: usize,
-    pub id: usize,
+    pub id: u32,
 
     pub filesystem: Option<Dyn<dyn FileSystem>>,
 }
 
 impl Disk {
-    pub fn new(disk_type: DiskType, sector_size: usize, id: usize) -> Self {
+    pub fn new(disk_type: DiskType, sector_size: usize, id: u32) -> Self {
         Self {
             _disk_type: disk_type,
             sector_size,
@@ -75,7 +75,7 @@ pub struct DiskStreamer {
 }
 
 impl DiskStreamer {
-    pub fn new(_id: usize) -> Self {
+    pub fn new(_id: u32) -> Self {
         unsafe {
             Self {
                 pos: 0,
@@ -124,7 +124,7 @@ impl DiskStreamer {
 }
 
 #[allow(static_mut_refs)]
-pub fn get_disk(_id: usize) -> &'static Global<Disk> {
+pub fn get_disk(_id: u32) -> &'static Global<Disk> {
     unsafe { &DISK0 }
 }
 

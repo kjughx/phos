@@ -1,3 +1,4 @@
+use super::types::*;
 use crate::disk::{DiskStreamer, SECTOR_SIZE};
 
 #[repr(C, packed)]
@@ -37,7 +38,7 @@ pub struct FatH {
 }
 
 impl FatH {
-    pub fn new(disk_id: usize) -> Self {
+    pub fn new(disk_id: u32) -> Self {
         let mut streamer = DiskStreamer::new(disk_id);
         const HEADER_SIZE: usize = core::mem::size_of::<FatH>();
         let mut buf: [u8; HEADER_SIZE] = [0; HEADER_SIZE];
@@ -74,10 +75,10 @@ pub struct FatDirectoryItem {
     pub creation_time: u16,
     pub creation_dat: u16,
     pub last_access: u16,
-    pub high_16_bits_first_cluster: u16,
+    pub extended_attributes: u16,
     pub last_mod_time: u16,
     pub last_mod_data: u16,
-    pub low_16_bits_first_cluster: u16,
+    pub first_cluster: u16,
     pub filesize: u32,
 }
 
@@ -89,7 +90,7 @@ impl<'a> FatDirectoryItem {
     }
 
     pub fn first_cluster(&self) -> usize {
-        self.high_16_bits_first_cluster as usize | self.low_16_bits_first_cluster as usize
+        self.first_cluster as usize
     }
 
     pub fn filename(&self) -> &str {

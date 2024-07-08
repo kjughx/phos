@@ -3,7 +3,8 @@ use crate::prelude::*;
 use crate::disk::DiskStreamer;
 use core::mem;
 
-use super::fat_private::{FatDirectoryItem, FAT_DIRECTORY_ITEM_SIZE};
+use super::private::{FatDirectoryItem, FAT_DIRECTORY_ITEM_SIZE};
+use super::types::*;
 
 pub(super) const FAT16_SIGNATURE: u8 = 0x29;
 const FAT16_ENTRY_SIZE: u16 = 0x02;
@@ -34,7 +35,9 @@ impl FatDirectory {
 
         let mut items = DynArray::new(count);
         for _ in 0..total as isize {
-            items.push(FatDirectoryItem::new(streamer))
+            let item = FatDirectoryItem::new(streamer);
+            trace!("{:?}", item.first_cluster());
+            items.push(item);
         }
 
         Self {
@@ -72,6 +75,10 @@ impl FatDirectory {
         }
 
         None
+    }
+
+    pub fn size(&self) -> usize {
+        self.total as usize * FAT_DIRECTORY_ITEM_SIZE
     }
 }
 

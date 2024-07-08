@@ -3,11 +3,11 @@
 
 use core::hint;
 use ruix::path;
+use ruix::trace;
 
 use ruix::fs;
 use ruix::gdt::gdt_init;
 use ruix::idt::idt_init;
-use ruix::println;
 use ruix::tty::init_screen;
 
 #[no_mangle]
@@ -19,9 +19,14 @@ pub extern "C" fn kernel_main() -> ! {
 
     fs::resolve(ruix::disk::get_disk_mut(0)).ok().unwrap();
 
-    assert!(fs::open(path::Path::new("0:/HELLO"), fs::FileMode::ReadOnly).is_ok());
+    let Ok(desc) = fs::open(path::Path::new("0:/HELLO"), fs::FileMode::ReadOnly) else {
+        panic!("Failed to open file");
+    };
 
-    println!("Hello, World!");
+    let mut buf: [u8; 256] = [0; 256];
+    desc.read(256, 1, &mut buf).unwrap();
+
+    trace!("{:#?}", buf);
 
     loop {
         hint::spin_loop()

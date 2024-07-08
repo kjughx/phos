@@ -3,7 +3,7 @@ use crate::prelude::*;
 use crate::string::String;
 
 pub struct Path<'a> {
-    pub disk_id: Option<usize>, // If this is None, the path is empty or invalid
+    pub disk_id: Option<u32>, // If this is None, the path is empty or invalid
     parts: Vec<&'a str>,
 }
 

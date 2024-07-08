@@ -28,7 +28,7 @@ impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<_Dyn<U>> for _Dyn<T> {}
 
 impl<T: ?Sized> Deref for _Dyn<T> {
     type Target = T;
-    fn deref(&self) -> &T {
+    fn deref(&self) -> &Self::Target {
         unsafe { self.0.as_ref() }
     }
 }
