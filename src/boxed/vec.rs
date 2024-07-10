@@ -100,8 +100,16 @@ impl<T: Copy> _Vec<T> {
 
     pub fn as_slice(&self) -> &[T] {
         unsafe {
-            core::ptr::slice_from_raw_parts(self.data.as_ptr(), self.len as usize)
+            core::ptr::slice_from_raw_parts(self.data.as_ptr(), self.cap as usize)
                 .as_ref()
+                .unwrap()
+        }
+    }
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
+        unsafe {
+            core::ptr::slice_from_raw_parts(self.data.as_ptr(), self.cap as usize)
+                .cast_mut()
+                .as_mut()
                 .unwrap()
         }
     }
@@ -192,6 +200,9 @@ impl<T: Copy> _DynArray<T> {
     }
     pub fn as_slice(&self) -> &[T] {
         self.0.as_slice()
+    }
+    pub fn as_slice_mut(&mut self) -> &mut [T] {
+        self.0.as_slice_mut()
     }
     pub fn push(&mut self, x: T) {
         self.0.push(x)
