@@ -1,8 +1,8 @@
-use super::types::*;
 use crate::disk::{DiskStreamer, SECTOR_SIZE};
+use crate::Packed;
+use crate::{packed, FromBytes};
 
-#[repr(C, packed)]
-#[derive(Default, Clone, Copy)]
+#[packed]
 pub struct FatHeaderExt {
     drive_no: u8,
     win_nt_bit: u8,
@@ -12,8 +12,7 @@ pub struct FatHeaderExt {
     pub system_id_string: [u8; 8],
 }
 
-#[repr(C, packed)]
-#[derive(Default, Clone, Copy)]
+#[packed]
 pub struct FatHeader {
     pub short_jmp_ins: [u8; 3],
     pub oem_identifier: [u8; 8],
@@ -31,7 +30,7 @@ pub struct FatHeader {
     pub sectors_big: u32,
 }
 
-#[derive(Default, Clone, Copy)]
+#[packed]
 pub struct FatH {
     pub primary_header: FatHeader,
     pub extended_header: FatHeaderExt,
@@ -64,8 +63,7 @@ impl From<&[u8; FAT_HEADER_SIZE]> for FatH {
     }
 }
 
-#[repr(C, packed)]
-#[derive(Clone, Copy)]
+#[packed]
 pub struct FatDirectoryItem {
     pub filename: [u8; 8],
     pub extension: [u8; 3],

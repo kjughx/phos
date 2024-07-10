@@ -9,6 +9,8 @@
 #![feature(unsize)]
 #![allow(dead_code)]
 
+extern crate packed_macro;
+
 pub mod boxed;
 pub mod disk;
 pub mod fs;
@@ -27,6 +29,14 @@ pub mod tty;
 pub use prelude::*;
 
 pub struct Addr(pub u32);
+pub use packed_macro::{packed, Packed};
+
+pub trait _Packed_: Sized {}
+
+pub trait FromBytes: _Packed_ {
+    type Output;
+    fn from_bytes(bytes: &[u8]) -> Self::Output;
+}
 
 #[macro_export]
 macro_rules! spinwhile {

@@ -36,7 +36,7 @@ $(BIN)/kernel.bin: rust
 
 .PHONY: rust
 rust: $(OBJS) $(R_SRCS) $(C_SRCS)
-	@cargo build --message-format short
+	@cargo build
 	@cp $(OBJ)/i686-unknown-none/debug/ruix build/kernelfull.o
 	@objcopy --target elf32-i386 -O binary build/kernelfull.o $(BIN)/kernel.bin
 

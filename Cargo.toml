@@ -3,6 +3,9 @@ name = "ruix"
 version = "0.1.0"
 edition = "2021"
 
+[dependencies]
+packed_macro = {path = "packed_macro"}
+
 [build-dependencies]
 cc = "1.0"
 
