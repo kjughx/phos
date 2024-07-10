@@ -58,7 +58,7 @@ impl Heap {
     }
     fn addr_to_block(&self, addr: Addr) -> usize {
         debug_assert!(addr >= self.start, "{addr:#?}");
-        (addr as usize - self.start as usize) / (HEAP_BLOCK_SIZE as usize)
+        (addr as usize - self.start as usize) / (HEAP_BLOCK_SIZE)
     }
 
     fn mark_blocks_taken(&mut self, start_block: usize, total_blocks: usize) {
@@ -150,12 +150,12 @@ impl Heap {
     }
 
     fn align_block(val: usize) -> usize {
-        if val < HEAP_BLOCK_SIZE as usize {
-            return 1;
-        } else if val % HEAP_BLOCK_SIZE as usize == 0 {
-            return val / HEAP_BLOCK_SIZE as usize;
+        if val < HEAP_BLOCK_SIZE {
+            1
+        } else if val % HEAP_BLOCK_SIZE == 0 {
+            return val / HEAP_BLOCK_SIZE;
         } else {
-            return val / HEAP_BLOCK_SIZE as usize + 1;
+            return val / HEAP_BLOCK_SIZE + 1;
         }
     }
 

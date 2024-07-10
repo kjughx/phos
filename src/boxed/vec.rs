@@ -101,14 +101,14 @@ impl<T: Copy> _Vec<T> {
 
     pub fn as_slice(&self) -> &[T] {
         unsafe {
-            core::ptr::slice_from_raw_parts(self.data.as_ptr(), self.cap as usize)
+            core::ptr::slice_from_raw_parts(self.data.as_ptr(), self.cap)
                 .as_ref()
                 .unwrap()
         }
     }
     pub fn as_slice_mut(&mut self) -> &mut [T] {
         unsafe {
-            core::ptr::slice_from_raw_parts(self.data.as_ptr(), self.cap as usize)
+            core::ptr::slice_from_raw_parts(self.data.as_ptr(), self.cap)
                 .cast_mut()
                 .as_mut()
                 .unwrap()

@@ -71,7 +71,7 @@ pub struct FatDirectoryItem {
     pub filesize: u32,
 }
 
-impl<'a> FatDirectoryItem {
+impl FatDirectoryItem {
     pub fn new(streamer: &mut dyn Stream) -> Self {
         let mut buf = [0; FAT_DIRECTORY_ITEM_SIZE];
         streamer.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);

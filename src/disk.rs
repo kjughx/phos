@@ -70,7 +70,7 @@ pub struct Streamer<'a> {
     disk: &'a Disk,
 }
 
-impl<'a> Stream for Streamer<'_> {
+impl Stream for Streamer<'_> {
     fn seek(&mut self, pos: usize) {
         self.pos = pos
     }
@@ -134,8 +134,8 @@ impl<'a> Streamer<'a> {
 
         let mut buf: Vec<u8> = Vec::with_capacity(size);
 
-        self.read(&mut buf.as_slice_mut(), size);
-        T::from_bytes(&buf.as_slice())
+        self.read(buf.as_slice_mut(), size);
+        T::from_bytes(buf.as_slice())
     }
 }
 

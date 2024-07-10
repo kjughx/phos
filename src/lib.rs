@@ -1,6 +1,5 @@
 #![no_std]
 #![feature(naked_functions)]
-#![feature(panic_info_message)]
 #![allow(internal_features)]
 #![feature(ptr_internals)]
 #![feature(dispatch_from_dyn)]
