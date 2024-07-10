@@ -21,7 +21,7 @@ const FAT_FILE_RESERVERED: u8 = 1 << 7;
 
 #[derive(Clone)]
 pub(super) struct FatDirectory {
-    items: DynArray<FatDirectoryItem>,
+    items: Array<FatDirectoryItem>,
     pub total: u32,
     pub start: usize,
     pub end: usize,
@@ -32,10 +32,10 @@ impl FatDirectory {
         streamer.seek_sector(start);
         let total = Self::get_total_items(streamer);
 
-        let mut items = DynArray::new(count);
-        for _ in 0..total as isize {
+        let mut items = Array::new(count);
+        for i in 0..total as isize {
             let item = FatDirectoryItem::new(streamer);
-            items.push(item);
+            items[i] = item;
         }
 
         Self {

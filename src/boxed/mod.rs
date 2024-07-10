@@ -1,8 +1,9 @@
+pub mod arr;
 pub mod r#box;
 pub mod r#dyn;
 pub mod vec;
 
-use crate::{memory::Heap, Global};
+use crate::{memory::heap::Heap, Global};
 
 const KERNEL_HEAP_SIZE: usize = 100 * 1024 * 1024; // 100MB
 const KERNEL_HEAP_START: usize = 0x01000000;

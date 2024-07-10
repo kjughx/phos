@@ -6,13 +6,11 @@ use core::{
     ptr::Unique,
 };
 
-use super::KERNEL_HEAP as HEAP;
-
 pub struct _Dyn<T: ?Sized>(Unique<T>);
 impl<T> _Dyn<T> {
     pub fn new(x: T) -> Self {
         unsafe {
-            let t_ptr = lock!(HEAP).alloc::<T>(core::mem::size_of::<T>());
+            let t_ptr = alloc::<T>(core::mem::size_of::<T>());
             t_ptr.write(x);
             Self(Unique::new_unchecked(t_ptr))
         }
@@ -20,7 +18,7 @@ impl<T> _Dyn<T> {
 
     pub fn drop(self) {
         trace!("Dropping Dyn");
-        unsafe { lock!(HEAP).free::<T>(self.0.as_ptr()) }
+        free::<T>(self.0.as_ptr())
     }
 }
 

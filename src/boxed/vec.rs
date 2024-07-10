@@ -6,6 +6,7 @@ use core::{
 };
 
 #[derive(Clone)]
+#[doc(hidden)]
 pub struct _Vec<T: Sized> {
     data: Unique<T>,
     cap: usize,
@@ -29,17 +30,15 @@ impl<'a, T> Iterator for VecIter<'a, T> {
     }
 }
 
-use super::KERNEL_HEAP as HEAP;
-
 const DEFAULT_VEC_CAP: usize = 16;
 
 impl<T: Copy> _Vec<T> {
     pub fn new() -> Self {
         trace!("Creating Vec with {} capacity", DEFAULT_VEC_CAP);
         unsafe {
-            let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
-                lock!(HEAP).alloc(DEFAULT_VEC_CAP * core::mem::size_of::<T>()),
-            );
+            let t_ptr = core::mem::transmute::<*mut u8, *mut T>(alloc(
+                DEFAULT_VEC_CAP * core::mem::size_of::<T>(),
+            ));
 
             Self {
                 data: Unique::new_unchecked(t_ptr),
@@ -52,9 +51,8 @@ impl<T: Copy> _Vec<T> {
     pub fn with_capacity(cap: usize) -> Self {
         trace!("Creating Vec with {} capacity", cap);
         unsafe {
-            let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
-                lock!(HEAP).alloc(cap * core::mem::size_of::<T>()),
-            );
+            let t_ptr =
+                core::mem::transmute::<*mut u8, *mut T>(alloc(cap * core::mem::size_of::<T>()));
 
             Self {
                 data: Unique::new_unchecked(t_ptr),
@@ -66,9 +64,10 @@ impl<T: Copy> _Vec<T> {
 
     fn grow(&mut self) {
         unsafe {
-            self.data = Unique::new_unchecked(core::mem::transmute::<*mut u8, *mut T>(
-                lock!(HEAP).realloc(self.data.as_ptr() as *mut u8, 2 * self.cap),
-            ));
+            self.data = Unique::new_unchecked(core::mem::transmute::<*mut u8, *mut T>(realloc(
+                self.data.as_ptr() as *mut u8,
+                2 * self.cap,
+            )));
         }
         self.cap *= 2;
     }
@@ -142,7 +141,7 @@ impl<T: Copy> Default for _Vec<T> {
 impl<T: Sized> Drop for _Vec<T> {
     fn drop(&mut self) {
         trace!("Dropping Vec");
-        unsafe { lock!(HEAP).free(self.data.as_ptr()) }
+        free(self.data.as_ptr())
     }
 }
 
@@ -187,48 +186,6 @@ impl<'a, T> IntoIterator for &'a _Vec<T> {
     fn into_iter(self) -> Self::IntoIter {
         VecIter {
             vec: self,
-            index: 0,
-        }
-    }
-}
-
-#[derive(Clone)]
-pub struct _DynArray<T>(_Vec<T>);
-impl<T: Copy> _DynArray<T> {
-    pub fn new(cap: usize) -> Self {
-        trace!("Creating DynArray with {} capacity", cap);
-        Self(_Vec::with_capacity(cap))
-    }
-    pub fn as_slice(&self) -> &[T] {
-        self.0.as_slice()
-    }
-    pub fn as_slice_mut(&mut self) -> &mut [T] {
-        self.0.as_slice_mut()
-    }
-    pub fn push(&mut self, x: T) {
-        self.0.push(x)
-    }
-}
-
-impl<T> Index<isize> for _DynArray<T> {
-    type Output = T;
-    fn index(&self, index: isize) -> &Self::Output {
-        self.0.index(index)
-    }
-}
-
-impl<T> IndexMut<isize> for _DynArray<T> {
-    fn index_mut(&mut self, index: isize) -> &mut Self::Output {
-        self.0.index_mut(index)
-    }
-}
-
-impl<'a, T> IntoIterator for &'a _DynArray<T> {
-    type Item = &'a T;
-    type IntoIter = VecIter<'a, T>;
-    fn into_iter(self) -> Self::IntoIter {
-        VecIter {
-            vec: &self.0,
             index: 0,
         }
     }

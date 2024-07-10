@@ -158,21 +158,27 @@ impl Heap {
             return val / HEAP_BLOCK_SIZE + 1;
         }
     }
+}
 
-    pub(super) fn alloc<T>(&mut self, size: usize) -> *mut T {
-        self.alloc_blocks(Self::align_block(size)).cast()
-    }
+pub fn alloc<T>(size: usize) -> *mut T {
+    let mut heap = unsafe { lock!(KERNEL_HEAP) };
+    heap.alloc_blocks(Heap::align_block(size)).cast()
+}
 
-    pub(super) fn realloc(&mut self, old: Addr, size: usize) -> Addr {
-        let count = Self::align_block(size);
-        let new = self.alloc_blocks(count);
-        self.copy_blocks(self.addr_to_block(new), self.addr_to_block(old), count);
+pub fn realloc(old: Addr, size: usize) -> Addr {
+    let mut heap = unsafe { lock!(KERNEL_HEAP) };
+    let count = Heap::align_block(size);
+    let new = heap.alloc_blocks(count);
+    let src = heap.addr_to_block(new);
+    let dst = heap.addr_to_block(old);
 
-        new
-    }
+    heap.copy_blocks(src, dst, count);
 
-    pub(super) fn free<T: ?Sized>(&mut self, ptr: *mut T) {
-        let start_block = self.addr_to_block(ptr.cast());
-        self.mark_blocks_free(start_block);
-    }
+    new
+}
+
+pub fn free<T: ?Sized>(ptr: *mut T) {
+    let mut heap = unsafe { lock!(KERNEL_HEAP) };
+    let start_block = heap.addr_to_block(ptr.cast());
+    heap.mark_blocks_free(start_block);
 }
