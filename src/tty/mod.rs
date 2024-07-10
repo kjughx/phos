@@ -1,14 +1,7 @@
-use crate::prelude::*;
-
 use core::fmt::{self, Write};
 
-const VGA_WIDTH: usize = 80;
-const VGA_HEIGHT: usize = 25;
-
-static mut TERMINAL: Global<TypeWriter> = Global::new(
-    || TypeWriter::new(0xB8000, VGA_WIDTH, VGA_HEIGHT),
-    "TERMINAL",
-);
+#[macro_use]
+pub mod terminal;
 
 pub struct TypeWriter {
     base: *mut u16,
@@ -93,25 +86,9 @@ impl TypeWriter {
     }
 }
 
-pub fn init_screen() {
-    unsafe {
-        let mut terminal = lock!(TERMINAL);
-        terminal.init()
-    };
-}
-
 impl Write for TypeWriter {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         self.write(s);
         Ok(())
-    }
-}
-
-pub fn print(args: fmt::Arguments) {
-    use core::fmt::Write;
-
-    unsafe {
-        let mut terminal = lock!(TERMINAL);
-        terminal.write_fmt(args).unwrap()
     }
 }

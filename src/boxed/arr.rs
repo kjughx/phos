@@ -29,7 +29,7 @@ impl<T> _Array<T> {
         }
     }
 
-    pub fn drop(&mut self) {
+    pub fn free(&mut self) {
         free(self.data.as_ptr())
     }
 

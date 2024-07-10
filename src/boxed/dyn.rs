@@ -16,6 +16,10 @@ impl<T> _Dyn<T> {
         }
     }
 
+    pub fn as_ptr(&mut self) -> *mut T {
+        self.0.as_ptr()
+    }
+
     pub fn drop(self) {
         trace!("Dropping Dyn");
         free::<T>(self.0.as_ptr())

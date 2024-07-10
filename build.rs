@@ -17,5 +17,9 @@ fn main() {
         .object("build/asm/gdt.asm.o")
         .compile("gdt");
 
+    if std::env::var("PROFILE").unwrap() == "debug" {
+        println!("cargo:rustc-cfg=feature=\"trace\"");
+    }
+
     println!("cargo:rustc-link-arg-bins=--script=linker.ld",);
 }

@@ -40,6 +40,16 @@ impl Disk {
         }
     }
 
+    #[allow(static_mut_refs)]
+    pub fn get(_id: u32) -> &'static Global<Disk> {
+        unsafe { &DISK0 }
+    }
+
+    #[allow(static_mut_refs)]
+    pub fn get_mut(_id: usize) -> &'static mut Global<Disk> {
+        unsafe { &mut DISK0 }
+    }
+
     pub fn register_filesystem(&mut self, fs: Dyn<dyn FileSystem>) {
         self.filesystem = Some(fs)
     }
@@ -137,14 +147,4 @@ impl<'a> Streamer<'a> {
         self.read(buf.as_slice_mut(), size);
         T::from_bytes(buf.as_slice())
     }
-}
-
-#[allow(static_mut_refs)]
-pub fn get_disk(_id: u32) -> &'static Global<Disk> {
-    unsafe { &DISK0 }
-}
-
-#[allow(static_mut_refs)]
-pub fn get_disk_mut(_id: usize) -> &'static mut Global<Disk> {
-    unsafe { &mut DISK0 }
 }

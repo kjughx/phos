@@ -4,7 +4,7 @@ mod r#impl;
 mod private;
 
 use crate::{
-    disk::{self, Disk, Stream},
+    disk::{Disk, Stream},
     fs::{FileDescriptor, FileMode, FileSystem, IOError},
     path::Path,
 };
@@ -27,7 +27,7 @@ impl Fat16 {
         }
     }
 
-    pub fn resolve(disk: &Global<Disk>) -> Result<Dyn<dyn FileSystem>, IOError> {
+    pub fn resolve(disk: &Global<Disk>) -> Result<Dyn<dyn FileSystem>, FSError> {
         let (id, sector_size, header) = {
             let disk = lock!(disk);
 
@@ -35,7 +35,7 @@ impl Fat16 {
         };
 
         if header.extended_header.signature != FAT16_SIGNATURE {
-            return Err(IOError::NotOurFS);
+            return Err(FSError::NotOurFS);
         }
 
         let root_start = header.root();
@@ -83,10 +83,6 @@ impl Fat16 {
             self.header.primary_header.sectors_per_cluster
         );
         self.root_dir.end + (cluster - 2) * self.header.primary_header.sectors_per_cluster as usize
-    }
-
-    fn addr_of_data(&self) -> usize {
-        self.header.root() + self.root_dir.size()
     }
 }
 
@@ -151,13 +147,14 @@ impl FatFileDescriptor {
     }
 }
 
+use crate::fs::{FSError, SeekMode};
 impl FileDescriptor for FatFileDescriptor {
     fn read(&self, size: usize, count: usize, buf: &mut [u8]) -> Result<(), IOError> {
         if buf.len() < size * count {
             return Err(IOError::InvalidArgument);
         }
 
-        let disk = lock!(disk::get_disk(self.disk_id));
+        let disk = lock!(Disk::get(self.disk_id));
         let mut stream = disk.stream();
 
         let start_sector = disk
@@ -181,7 +178,11 @@ impl FileDescriptor for FatFileDescriptor {
         todo!()
     }
 
-    fn seek(&mut self, _offset: isize, _whence: crate::fs::SeekMode) {
-        todo!()
+    fn seek(&mut self, offset: isize, whence: SeekMode) {
+        match whence {
+            SeekMode::CurrentPosition => self.pos = (self.pos as isize + offset) as usize,
+            SeekMode::EndOfFile => self.pos = (self.item.filesize as isize - offset) as usize,
+            SeekMode::StartOfFile => self.pos = offset as usize,
+        }
     }
 }

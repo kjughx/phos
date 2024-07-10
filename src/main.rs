@@ -2,21 +2,25 @@
 #![no_main]
 
 use core::hint;
-use ruix::println;
 
-use ruix::fs;
-use ruix::gdt::gdt_init;
-use ruix::idt::idt_init;
-use ruix::tty::init_screen;
+use ruix::{disk::Disk, fs::Vfs, gdt::Gdt, idt::Idt, println, tty::terminal::Terminal};
 
 #[no_mangle]
 pub extern "C" fn kernel_main() -> ! {
-    init_screen();
+    // Init and clear the terminal
+    Terminal::init();
 
-    gdt_init();
-    idt_init();
+    // Setup Global Descriptor Table
+    Gdt::init();
 
-    fs::resolve(ruix::disk::get_disk_mut(0)).ok().unwrap();
+    // Setup Interrupt descriptor Table
+    Idt::init();
+
+    // Resolve the connected disks
+    match Vfs::resolve(Disk::get_mut(0)) {
+        Ok(()) => (),
+        Err(_) => println!("Could not resolve disk 0"),
+    }
 
     println!("Hello, World!");
     loop {

@@ -21,9 +21,9 @@ all: prelude $(BINS)
 	@dd status=none if=$(BIN)/boot.bin >> $(BIN)/os.bin
 	@dd status=none if=$(BIN)/kernel.bin >> $(BIN)/os.bin
 	@dd status=none if=/dev/zero bs=1024 count=1024 >> $(BIN)/os.bin
-	@sudo mount -t vfat $(BIN)/os.bin /mnt/d
-	@echo "Hello, World!" | sudo tee /mnt/d/hello 1>/dev/null
-	@sudo umount /mnt/d
+	# @sudo mount -t vfat $(BIN)/os.bin /mnt/d
+	# @echo "Hello, World!" | sudo tee /mnt/d/HELLO 1>/dev/null
+	# @sudo umount /mnt/d
 
 $(BIN)/boot.bin: $(SRC)/asm/boot/boot.asm
 	nasm -f bin $< -o $@
@@ -56,3 +56,7 @@ gdb: all
 .PHONY: qemu
 qemu: all
 	qemu-system-i386 -hda bin/os.bin -serial stdio
+
+.PHONY: trace
+trace: all
+	qemu-system-i386 -hda bin/os.bin -serial stdio -display none

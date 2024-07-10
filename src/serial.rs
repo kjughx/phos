@@ -45,6 +45,8 @@ impl SerialPort {
 }
 
 #[macro_export]
+#[doc(hidden)]
+#[cfg(feature = "trace")]
 macro_rules! __trace {
     ($($arg:tt)*) => {
         $crate::serial::_print(format_args!($($arg)*));
@@ -52,11 +54,43 @@ macro_rules! __trace {
 }
 
 #[macro_export]
+macro_rules! _func {
+    () => {{
+        fn f() {}
+        fn type_name_of<T>(_: T) -> &'static str {
+            core::any::type_name::<T>()
+        }
+        let name = type_name_of(f);
+        name.strip_suffix("::f").unwrap()
+    }};
+}
+
+#[macro_export]
+#[doc(hidden)]
+#[cfg(feature = "trace")]
 macro_rules! _trace {
-    () => ($crate::__trace!("\n"));
-    ($fmt:expr) => ($crate::__trace!(concat!("[{}:{}] ", $fmt, "\n"), file!(), line!(),));
+    () => ($crate::__trace!("[{}:{}] {}\n", file!(), line!(), $crate::_func!()));
+    ($fmt:expr) => ($crate::__trace!(concat!("[{}:{}] ", $fmt, "\n"), file!(), line!()));
     ($fmt:expr, $($arg:tt)*) => ($crate::__trace!(
         concat!("[{}:{}] ", $fmt, "\n"), file!(), line!(), $($arg)*));
+}
+
+#[macro_export]
+#[doc(hidden)]
+macro_rules! dbg {
+    () => ($crate::__trace!("[{}:{}] {}\n", file!(), line!(), $crate::_func!()));
+    ($fmt:expr) => ($crate::__trace!(concat!("[{}:{}] ", $fmt, "\n"), file!(), line!()));
+    ($fmt:expr, $($arg:tt)*) => ($crate::__trace!(
+        concat!("[{}:{}] ", $fmt, "\n"), file!(), line!(), $($arg)*));
+}
+
+#[macro_export]
+#[doc(hidden)]
+#[cfg(not(feature = "trace"))]
+macro_rules! _trace {
+    () => {};
+    ($fmt:expr) => {};
+    ($fmt:expr, $($arg:tt)*) => {};
 }
 
 #[doc(hidden)]

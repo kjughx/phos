@@ -11,6 +11,7 @@
 extern crate packed_macro;
 
 pub mod boxed;
+pub mod cpu;
 pub mod disk;
 pub mod fs;
 pub mod gdt;
@@ -22,6 +23,7 @@ pub mod prelude;
 pub mod serial;
 pub mod start;
 pub mod string;
+pub mod task;
 
 #[macro_use]
 pub mod sync;
@@ -38,31 +40,7 @@ pub trait FromBytes: _Packed_ {
     fn from_bytes(bytes: &[u8]) -> Self::Output;
 }
 
-#[macro_export]
-macro_rules! spinwhile {
-    ($cond:expr) => {
-        while $cond {}
-    };
-}
-
-#[macro_export]
-macro_rules! spinuntil {
-    ($cond:expr) => {
-        while !($cond) {}
-    };
-}
-
-#[macro_export]
-macro_rules! __print {
-    ($($arg:tt)*) => {
-        $crate::tty::print(format_args!($($arg)*));
-    };
-}
-
-#[macro_export]
-macro_rules! __println {
-    () => ($crate::print!("\n"));
-    ($fmt:expr) => ($crate::__print!(concat!($fmt, "\n")));
-    ($fmt:expr, $($arg:tt)*) => ($crate::__print!(
-        concat!($fmt, "\n"), $($arg)*));
+pub enum Error {
+    InvalidArgument,
+    Unknown,
 }
