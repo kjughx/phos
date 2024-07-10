@@ -94,7 +94,10 @@ impl TypeWriter {
 }
 
 pub fn init_screen() {
-    unsafe { lock!(TERMINAL).init() };
+    unsafe {
+        let mut terminal = lock!(TERMINAL);
+        terminal.init()
+    };
 }
 
 impl Write for TypeWriter {
@@ -107,5 +110,8 @@ impl Write for TypeWriter {
 pub fn print(args: fmt::Arguments) {
     use core::fmt::Write;
 
-    unsafe { lock!(TERMINAL).write_fmt(args).unwrap() }
+    unsafe {
+        let mut terminal = lock!(TERMINAL);
+        terminal.write_fmt(args).unwrap()
+    }
 }

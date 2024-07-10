@@ -50,6 +50,7 @@ impl<T: Copy> _Vec<T> {
     }
 
     pub fn with_capacity(cap: usize) -> Self {
+        trace!("Creating Vec with {} capacity", cap);
         unsafe {
             let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
                 lock!(HEAP).alloc(cap * core::mem::size_of::<T>()),

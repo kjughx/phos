@@ -1,4 +1,5 @@
 pub use crate::__println as println;
+pub use crate::__trace;
 pub use crate::_trace as trace;
 pub use crate::serial::_print as print;
 pub use crate::spinuntil;

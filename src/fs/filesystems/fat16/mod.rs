@@ -2,7 +2,6 @@ use crate::prelude::*;
 
 mod r#impl;
 mod private;
-mod types;
 
 use crate::{
     disk::{self, Disk, Stream},
@@ -10,7 +9,7 @@ use crate::{
     path::Path,
 };
 
-use private::{FatDirectoryItem, FatH};
+use private::{FatDirectoryItem, FatH, FAT_DIRECTORY_ITEM_SIZE};
 use r#impl::{FatDirectory, FatItem, FAT16_SIGNATURE};
 
 pub struct Fat16 {
@@ -39,11 +38,12 @@ impl Fat16 {
             return Err(IOError::NotOurFS);
         }
 
-        let root_start = header.root() * sector_size;
-        let size = header.primary_header.root_dir_entries as usize;
+        let root_start = header.root();
+        let size =
+            header.primary_header.root_dir_entries as usize * FAT_DIRECTORY_ITEM_SIZE / sector_size;
         let root_dir = {
-            let mut stream = lock!(disk).stream();
-            FatDirectory::new(&mut stream, root_start, size)
+            let disk = lock!(disk);
+            FatDirectory::new(&mut disk.stream(), root_start, size)
         };
 
         Ok(Dyn::new(Self {
@@ -74,6 +74,15 @@ impl Fat16 {
             }
             Some(current)
         }
+    }
+
+    fn cluster_to_sector(&self, cluster: usize) -> usize {
+        trace!(
+            "{} {}",
+            self.root_dir.end,
+            self.header.primary_header.sectors_per_cluster
+        );
+        self.root_dir.end + (cluster - 2) * self.header.primary_header.sectors_per_cluster as usize
     }
 
     fn addr_of_data(&self) -> usize {
@@ -133,9 +142,9 @@ pub struct FatFileDescriptor {
 }
 
 impl FatFileDescriptor {
-    fn new(disk: u32, item: FatDirectoryItem) -> Self {
+    fn new(disk_id: u32, item: FatDirectoryItem) -> Self {
         Self {
-            disk_id: disk,
+            disk_id,
             item,
             pos: 0,
         }
@@ -148,15 +157,24 @@ impl FileDescriptor for FatFileDescriptor {
             return Err(IOError::InvalidArgument);
         }
 
-        let _ = match lock!(disk::get_disk(self.disk_id)).filesystem {
-            None => return Err(IOError::NoFS),
-            Some(ref fs) => fs
-                .as_any()
-                .downcast_ref::<Fat16>()
-                .expect("whose filesystem is this...?"),
-        };
+        let disk = lock!(disk::get_disk(self.disk_id));
+        let mut stream = disk.stream();
 
-        todo!();
+        let start_sector = disk
+            .filesystem
+            .as_ref()
+            .unwrap()
+            .as_any()
+            .downcast_ref::<Fat16>()
+            .unwrap()
+            .cluster_to_sector(self.item.first_cluster());
+
+        assert!(self.pos == 0, "No support for reading twice yet");
+        trace!("{}", disk.sector_size);
+        stream.seek_sector(start_sector);
+        stream.read(buf, size * count);
+
+        Ok(())
     }
 
     fn write(&mut self, _size: usize, _count: usize, _buf: &[u8]) -> Result<(), IOError> {

@@ -24,14 +24,15 @@ impl Lock {
         while self.locked.load(Ordering::Acquire) {
             hint::spin_loop()
         }
-
         self.locked.store(true, Ordering::Release);
     }
+
     fn unlock(&self) {
         assert!(self.locked.load(Ordering::Acquire));
         trace!("Unlocking {}", self.id);
         self.locked.store(false, Ordering::Release);
     }
+
     fn id(&self) -> &'static str {
         self.id
     }
@@ -39,10 +40,9 @@ impl Lock {
 
 #[macro_export]
 macro_rules! lock {
-    ($global:expr) => {{
-        trace!("Locking {}", $global.id());
-        $global.lock()
-    }};
+    ($global:expr) => {
+        $global.lock(file!(), line!())
+    };
 }
 
 pub struct Mutex<T> {
@@ -118,10 +118,6 @@ impl<'a, T: 'a, F: FnOnce() -> T> GlobalUnlocked<'a, T, F> {
         Self { global: lock }
     }
 
-    pub fn unlock(&self) {
-        self.global.lock.unlock();
-    }
-
     fn inner(&self) -> &T {
         let state = unsafe { &*self.global.data.get() };
 
@@ -174,8 +170,9 @@ impl<T, F: FnOnce() -> T> _Global<T, F> {
         }
     }
 
-    pub fn lock(&self) -> GlobalUnlocked<'_, T, F> {
+    pub fn lock(&self, file: &'static str, line: u32) -> GlobalUnlocked<'_, T, F> {
         self.lock.lock();
+        __trace!("[{}:{}] Locking {}\n", file, line, self.id());
         GlobalUnlocked::new(self)
     }
 
@@ -186,7 +183,7 @@ impl<T, F: FnOnce() -> T> _Global<T, F> {
 
 impl<'a, T: 'a, F: FnOnce() -> T> Drop for GlobalUnlocked<'a, T, F> {
     fn drop(&mut self) {
-        self.unlock()
+        self.global.lock.unlock();
     }
 }
 

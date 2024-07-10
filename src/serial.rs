@@ -54,7 +54,7 @@ macro_rules! __trace {
 #[macro_export]
 macro_rules! _trace {
     () => ($crate::__trace!("\n"));
-    ($fmt:expr) => ($crate::__trace!(concat!($fmt, "\n")));
+    ($fmt:expr) => ($crate::__trace!(concat!("[{}:{}] ", $fmt, "\n"), file!(), line!(),));
     ($fmt:expr, $($arg:tt)*) => ($crate::__trace!(
         concat!("[{}:{}] ", $fmt, "\n"), file!(), line!(), $($arg)*));
 }

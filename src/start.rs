@@ -3,7 +3,7 @@ pub static DATA_SEG: u32 = 0x10;
 
 use core::arch::asm;
 
-use crate::trace;
+use crate::__trace;
 
 #[no_mangle]
 #[naked]
@@ -39,12 +39,10 @@ extern "C" fn _start() -> ! {
 #[panic_handler]
 fn panic(info: &core::panic::PanicInfo) -> ! {
     if let Some(loc) = info.location() {
-        trace!("Kernel panic: [{}:{}]", loc.file(), loc.line());
+        __trace!("[{}:{}] panic - {}", loc.file(), loc.line(), info.message());
     } else {
-        trace!("Kernel panic somwhere!");
+        __trace!("Kernel panic somwhere!");
     }
-
-    trace!("{}", info.message());
 
     unsafe { asm!("hlt", options(noreturn)) }
 }

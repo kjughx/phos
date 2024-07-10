@@ -49,7 +49,7 @@ impl Disk {
     }
 
     pub fn stream(&self) -> Streamer {
-        Streamer::new()
+        Streamer::new(self)
     }
 }
 
@@ -57,6 +57,7 @@ static mut DISK0: Global<Disk> = Global::new(|| Disk::new(DiskType::Real, SECTOR
 
 pub trait Stream {
     fn seek(&mut self, pos: usize);
+    fn seek_sector(&mut self, pos: usize);
     fn pos(&self) -> usize;
     fn read(&mut self, buf: &mut [u8], total: usize);
     fn write(&mut self) {
@@ -64,13 +65,18 @@ pub trait Stream {
     }
 }
 
-pub struct Streamer {
+pub struct Streamer<'a> {
     pos: usize,
+    disk: &'a Disk,
 }
 
-impl Stream for Streamer {
+impl<'a> Stream for Streamer<'_> {
     fn seek(&mut self, pos: usize) {
         self.pos = pos
+    }
+
+    fn seek_sector(&mut self, sector: usize) {
+        self.pos = sector * self.disk.sector_size;
     }
 
     fn pos(&self) -> usize {
@@ -102,9 +108,9 @@ impl Stream for Streamer {
     }
 }
 
-impl Streamer {
-    pub fn new() -> Self {
-        Self { pos: 0 }
+impl<'a> Streamer<'a> {
+    pub fn new(disk: &'a Disk) -> Self {
+        Self { pos: 0, disk }
     }
     fn read_sector(&self, lba: u32, buf: &mut [u8; SECTOR_SIZE]) {
         outb(0x1F6, ((lba >> 24) | 0xE0) as u8);
