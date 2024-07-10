@@ -30,7 +30,6 @@ pub mod tty;
 
 pub use prelude::*;
 
-pub struct Addr(pub u32);
 pub use packed_macro::{packed, Packed};
 
 pub trait _Packed_: Sized {}

@@ -4,10 +4,8 @@ mod r#impl;
 mod private;
 mod types;
 
-use types::*;
-
 use crate::{
-    disk::{self, Disk, DiskStreamer},
+    disk::{self, Disk, Stream},
     fs::{FileDescriptor, FileMode, FileSystem, IOError},
     path::Path,
 };
@@ -31,17 +29,22 @@ impl Fat16 {
     }
 
     pub fn resolve(disk: &Global<Disk>) -> Result<Dyn<dyn FileSystem>, IOError> {
-        let id = { disk.lock().id };
-        let mut directory_stream = DiskStreamer::new(id);
-        let header = FatH::new(id);
-        trace!("{}", header.primary_header.sectors_per_cluster);
+        let (id, sector_size, header) = {
+            let disk = lock!(disk);
+
+            (disk.id, disk.sector_size, disk.stream().read_new::<FatH>())
+        };
+
         if header.extended_header.signature != FAT16_SIGNATURE {
             return Err(IOError::NotOurFS);
         }
 
-        let root_start = header.root();
+        let root_start = header.root() * sector_size;
         let size = header.primary_header.root_dir_entries as usize;
-        let root_dir = FatDirectory::new(&mut directory_stream, root_start, size);
+        let root_dir = {
+            let mut stream = lock!(disk).stream();
+            FatDirectory::new(&mut stream, root_start, size)
+        };
 
         Ok(Dyn::new(Self {
             disk_id: id,
@@ -54,28 +57,23 @@ impl Fat16 {
         &self.root_dir
     }
 
-    fn get_directory_entry(&mut self, path: Path) -> Option<FatItem> {
-        let Some(disk_id) = path.disk_id else {
-            return None;
-        };
-
+    fn get_directory_entry(&self, stream: &mut dyn Stream, path: Path) -> Option<FatItem> {
         let mut iter = path.parts().into_iter();
 
         let root = self.root();
         let part = iter.next()?;
 
-        let mut streamer = DiskStreamer::new(disk_id);
+        {
+            let mut current = root.find(stream, part)?;
 
-        let mut current = root.find(&mut streamer, part)?;
-
-        for next in iter {
-            match current {
-                FatItem::Directory(ref dir) => current = dir.find(&mut streamer, next)?,
-                FatItem::File(_) => return None,
+            for next in iter {
+                match current {
+                    FatItem::Directory(ref dir) => current = dir.find(stream, next)?,
+                    FatItem::File(_) => return None,
+                }
             }
+            Some(current)
         }
-
-        Some(current)
     }
 
     fn addr_of_data(&self) -> usize {
@@ -84,8 +82,13 @@ impl Fat16 {
 }
 
 impl FileSystem for Fat16 {
-    fn open(&mut self, path: Path, _mode: FileMode) -> Result<Box<dyn FileDescriptor>, IOError> {
-        let Some(entry) = self.get_directory_entry(path) else {
+    fn open(
+        &self,
+        stream: &mut dyn Stream,
+        path: Path,
+        _mode: FileMode,
+    ) -> Result<Box<dyn FileDescriptor>, IOError> {
+        let Some(entry) = self.get_directory_entry(stream, path) else {
             return Err(IOError::NoSuchFile);
         };
 
@@ -145,7 +148,7 @@ impl FileDescriptor for FatFileDescriptor {
             return Err(IOError::InvalidArgument);
         }
 
-        let fs = match disk::get_disk(self.disk_id).lock().filesystem {
+        let _ = match lock!(disk::get_disk(self.disk_id)).filesystem {
             None => return Err(IOError::NoFS),
             Some(ref fs) => fs
                 .as_any()
@@ -153,14 +156,14 @@ impl FileDescriptor for FatFileDescriptor {
                 .expect("whose filesystem is this...?"),
         };
 
-        Ok(())
+        todo!();
     }
 
-    fn write(&mut self, size: usize, count: usize, buf: &[u8]) -> Result<(), IOError> {
+    fn write(&mut self, _size: usize, _count: usize, _buf: &[u8]) -> Result<(), IOError> {
         todo!()
     }
 
-    fn seek(&mut self, offset: isize, whence: crate::fs::SeekMode) {
+    fn seek(&mut self, _offset: isize, _whence: crate::fs::SeekMode) {
         todo!()
     }
 }

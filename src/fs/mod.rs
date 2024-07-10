@@ -1,3 +1,4 @@
+use crate::disk::Stream;
 use crate::prelude::*;
 
 use crate::disk::{get_disk, Disk};
@@ -32,7 +33,12 @@ pub enum SeekMode {
 }
 
 pub trait FileSystem {
-    fn open(&mut self, path: Path, mode: FileMode) -> Result<Box<dyn FileDescriptor>, IOError>;
+    fn open(
+        &self,
+        stream: &mut dyn Stream,
+        path: Path,
+        mode: FileMode,
+    ) -> Result<Box<dyn FileDescriptor>, IOError>;
     fn read(&self, fd: Box<dyn FileDescriptor>);
     fn seek(&self);
     fn stat(&self);
@@ -61,11 +67,13 @@ pub fn open(path: Path, mode: FileMode) -> Result<Box<dyn FileDescriptor>, IOErr
         return Err(IOError::InvalidDisk);
     };
 
-    let mut disk = lock!(get_disk(disk_id));
+    let disk = lock!(get_disk(disk_id));
 
-    let Some(ref mut fs) = disk.filesystem else {
+    let Some(ref fs) = disk.filesystem else {
         return Err(IOError::NoFS);
     };
 
-    fs.open(path, mode)
+    let mut stream = disk.stream();
+
+    fs.open(&mut stream, path, mode)
 }

@@ -1,4 +1,4 @@
-use crate::disk::{DiskStreamer, SECTOR_SIZE};
+use crate::disk::Stream;
 use crate::Packed;
 use crate::{packed, FromBytes};
 
@@ -37,28 +37,19 @@ pub struct FatH {
 }
 
 impl FatH {
-    pub fn new(disk_id: u32) -> Self {
-        let mut streamer = DiskStreamer::new(disk_id);
-        const HEADER_SIZE: usize = core::mem::size_of::<FatH>();
-        let mut buf: [u8; HEADER_SIZE] = [0; HEADER_SIZE];
-        streamer.read(&mut buf, HEADER_SIZE);
-
-        FatH::from(&buf)
-    }
-
     pub fn root(&self) -> usize {
         let primary_header = self.primary_header;
 
-        (primary_header.fat_copies as usize * primary_header.sectors_per_fat as usize
-            + primary_header.reserved_sectors as usize)
-            * SECTOR_SIZE
+        primary_header.fat_copies as usize * primary_header.sectors_per_fat as usize
+            + primary_header.reserved_sectors as usize
     }
 }
 
 pub const FAT_HEADER_SIZE: usize = core::mem::size_of::<FatH>();
 
-impl From<&[u8; FAT_HEADER_SIZE]> for FatH {
-    fn from(bytes: &[u8; FAT_HEADER_SIZE]) -> Self {
+impl FromBytes for FatH {
+    type Output = FatH;
+    fn from_bytes(bytes: &[u8]) -> Self::Output {
         unsafe { *(bytes.as_ptr() as *const FatH) }
     }
 }
@@ -81,7 +72,7 @@ pub struct FatDirectoryItem {
 }
 
 impl<'a> FatDirectoryItem {
-    pub fn new(streamer: &mut DiskStreamer) -> Self {
+    pub fn new(streamer: &mut dyn Stream) -> Self {
         let mut buf = [0; FAT_DIRECTORY_ITEM_SIZE];
         streamer.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);
         FatDirectoryItem::from(&buf)
@@ -99,14 +90,14 @@ impl<'a> FatDirectoryItem {
         core::str::from_utf8(&self.extension).unwrap_or("").trim()
     }
 
-    pub fn size(streamer: &mut DiskStreamer) -> usize {
-        let pos = streamer.pos(); // We have to rewind when done
+    pub fn size(stream: &mut dyn Stream) -> usize {
+        let pos = stream.pos(); // We have to rewind when done
 
         const SIZE: usize = core::mem::size_of::<FatDirectoryItem>();
         let mut buf: [u8; SIZE] = [0; SIZE];
         let mut count = 0;
         loop {
-            streamer.read(&mut buf, SIZE);
+            stream.read(&mut buf, SIZE);
             match buf[0] {
                 0 => break,
                 0xE5 => continue,
@@ -114,7 +105,7 @@ impl<'a> FatDirectoryItem {
             }
         }
 
-        streamer.seek(pos);
+        stream.seek(pos);
         count
     }
 }

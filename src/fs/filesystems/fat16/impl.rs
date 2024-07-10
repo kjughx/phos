@@ -1,10 +1,9 @@
+use crate::disk::Stream;
 use crate::prelude::*;
 
-use crate::disk::DiskStreamer;
-use core::mem;
+use crate::disk::Streamer;
 
 use super::private::{FatDirectoryItem, FAT_DIRECTORY_ITEM_SIZE};
-use super::types::*;
 
 pub(super) const FAT16_SIGNATURE: u8 = 0x29;
 const FAT16_ENTRY_SIZE: u16 = 0x02;
@@ -29,7 +28,7 @@ pub(super) struct FatDirectory {
 }
 
 impl FatDirectory {
-    pub fn new(streamer: &mut DiskStreamer, start: usize, count: usize) -> Self {
+    pub fn new(streamer: &mut dyn Stream, start: usize, count: usize) -> Self {
         streamer.seek(start);
         let total = Self::get_total_items(streamer);
 
@@ -48,14 +47,13 @@ impl FatDirectory {
         }
     }
 
-    fn get_total_items(streamer: &mut DiskStreamer) -> u32 {
-        let pos = streamer.pos(); // We have to rewind when done
+    fn get_total_items(stream: &mut dyn Stream) -> u32 {
+        let pos = stream.pos(); // We have to rewind when done
 
-        const SIZE: usize = mem::size_of::<FatDirectoryItem>();
-        let mut buf: [u8; SIZE] = [0; SIZE];
+        let mut buf: [u8; FAT_DIRECTORY_ITEM_SIZE] = [0; FAT_DIRECTORY_ITEM_SIZE];
         let mut count = 0;
         loop {
-            streamer.read(&mut buf, SIZE);
+            stream.read(&mut buf, FAT_DIRECTORY_ITEM_SIZE);
             match buf[0] {
                 0 => break,
                 0xE5 => continue,
@@ -63,14 +61,21 @@ impl FatDirectory {
             }
         }
 
-        streamer.seek(pos);
+        stream.seek(pos);
         count
     }
 
-    pub fn find(&self, streamer: &mut DiskStreamer, name: &str) -> Option<FatItem> {
+    pub fn find(&self, stream: &mut dyn Stream, name: &str) -> Option<FatItem> {
         for item in self.items.into_iter() {
             if item.filename() == name {
-                return Some(FatItem::new(streamer, item));
+                let item = match item.attributes {
+                    FAT_FILE_SUBDIRECTORY => {
+                        let size = FatDirectoryItem::size(stream);
+                        FatItem::Directory(FatDirectory::new(stream, item.first_cluster(), size))
+                    }
+                    _ => FatItem::File(*item),
+                };
+                return Some(item);
             }
         }
 
@@ -88,7 +93,7 @@ pub(super) enum FatItem {
 }
 
 impl FatItem {
-    pub fn new(streamer: &mut DiskStreamer, item: &FatDirectoryItem) -> Self {
+    pub fn new(streamer: &mut Streamer, item: &FatDirectoryItem) -> Self {
         match item.attributes {
             FAT_FILE_SUBDIRECTORY => {
                 let size = FatDirectoryItem::size(streamer);

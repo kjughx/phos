@@ -3,7 +3,7 @@
 
 use core::hint;
 use ruix::path;
-use ruix::trace;
+use ruix::{println, trace};
 
 use ruix::fs;
 use ruix::gdt::gdt_init;
@@ -28,6 +28,7 @@ pub extern "C" fn kernel_main() -> ! {
 
     trace!("{:#?}", buf);
 
+    println!("Hello, World!");
     loop {
         hint::spin_loop()
     }
