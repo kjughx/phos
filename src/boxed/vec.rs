@@ -38,8 +38,7 @@ impl<T: Copy> _Vec<T> {
         trace!("Creating Vec with {} capacity", DEFAULT_VEC_CAP);
         unsafe {
             let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
-                HEAP.lock()
-                    .alloc(DEFAULT_VEC_CAP * core::mem::size_of::<T>()),
+                lock!(HEAP).alloc(DEFAULT_VEC_CAP * core::mem::size_of::<T>()),
             );
 
             Self {
@@ -53,7 +52,7 @@ impl<T: Copy> _Vec<T> {
     pub fn with_capacity(cap: usize) -> Self {
         unsafe {
             let t_ptr = core::mem::transmute::<*mut u8, *mut T>(
-                HEAP.lock().alloc(cap * core::mem::size_of::<T>()),
+                lock!(HEAP).alloc(cap * core::mem::size_of::<T>()),
             );
 
             Self {
@@ -67,8 +66,7 @@ impl<T: Copy> _Vec<T> {
     fn grow(&mut self) {
         unsafe {
             self.data = Unique::new_unchecked(core::mem::transmute::<*mut u8, *mut T>(
-                HEAP.lock()
-                    .realloc(self.data.as_ptr() as *mut u8, 2 * self.cap),
+                lock!(HEAP).realloc(self.data.as_ptr() as *mut u8, 2 * self.cap),
             ));
         }
         self.cap *= 2;
@@ -135,7 +133,7 @@ impl<T: Copy> Default for _Vec<T> {
 impl<T: Sized> Drop for _Vec<T> {
     fn drop(&mut self) {
         trace!("Dropping Vec");
-        unsafe { HEAP.lock().free(self.data.as_ptr()) }
+        unsafe { lock!(HEAP).free(self.data.as_ptr()) }
     }
 }
 

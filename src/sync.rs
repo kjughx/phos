@@ -1,3 +1,5 @@
+use crate::prelude::*;
+
 use core::{
     cell::UnsafeCell,
     hint,
@@ -27,8 +29,20 @@ impl Lock {
     }
     fn unlock(&self) {
         assert!(self.locked.load(Ordering::Acquire));
+        trace!("Unlocking {}", self.id);
         self.locked.store(false, Ordering::Release);
     }
+    fn id(&self) -> &'static str {
+        self.id
+    }
+}
+
+#[macro_export]
+macro_rules! lock {
+    ($global:expr) => {{
+        trace!("Locking {}", $global.id());
+        $global.lock()
+    }};
 }
 
 pub struct Mutex<T> {
@@ -163,6 +177,10 @@ impl<T, F: FnOnce() -> T> _Global<T, F> {
     pub fn lock(&self) -> GlobalUnlocked<'_, T, F> {
         self.lock.lock();
         GlobalUnlocked::new(self)
+    }
+
+    pub fn id(&self) -> &'static str {
+        self.lock.id()
     }
 }
 

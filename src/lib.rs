@@ -23,6 +23,8 @@ pub mod prelude;
 pub mod serial;
 pub mod start;
 pub mod string;
+
+#[macro_use]
 pub mod sync;
 pub mod tty;
 

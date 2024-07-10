@@ -4,6 +4,7 @@ pub use crate::serial::_print as print;
 pub use crate::spinuntil;
 pub use crate::spinwhile;
 
+pub use crate::lock;
 pub use crate::sync::_Global as Global;
 
 pub use crate::boxed::r#box::_Box as Box;

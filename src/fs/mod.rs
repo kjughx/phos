@@ -49,7 +49,7 @@ pub trait FileDescriptor {
 
 pub fn resolve(disk: &mut Global<Disk>) -> Result<(), IOError> {
     if let Ok(fs) = Fat16::resolve(disk) {
-        disk.lock().register_filesystem(fs);
+        lock!(disk).register_filesystem(fs);
         return Ok(());
     }
 
@@ -61,9 +61,9 @@ pub fn open(path: Path, mode: FileMode) -> Result<Box<dyn FileDescriptor>, IOErr
         return Err(IOError::InvalidDisk);
     };
 
-    let disk = get_disk(disk_id);
+    let mut disk = lock!(get_disk(disk_id));
 
-    let Some(ref mut fs) = disk.lock().filesystem else {
+    let Some(ref mut fs) = disk.filesystem else {
         return Err(IOError::NoFS);
     };
 
