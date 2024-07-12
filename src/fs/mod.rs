@@ -61,7 +61,10 @@ pub struct Vfs;
 impl Vfs {
     pub fn resolve(disk: &mut Global<Disk>) -> Result<(), FSError> {
         match Fat16::resolve(disk) {
-            Ok(fs) => lock!(disk).register_filesystem(fs),
+            Ok(fs) => {
+                lock!(disk).register_filesystem(fs);
+                return Ok(());
+            }
             Err(FSError::NotOurFS) => (),
             Err(e) => Err(e)?,
         }

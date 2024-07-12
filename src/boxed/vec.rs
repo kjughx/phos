@@ -34,7 +34,7 @@ const DEFAULT_VEC_CAP: usize = 16;
 
 impl<T: Copy> _Vec<T> {
     pub fn new() -> Self {
-        trace!("Creating Vec with {} capacity", DEFAULT_VEC_CAP);
+        traceln!("Creating Vec with {} capacity", DEFAULT_VEC_CAP);
         unsafe {
             let t_ptr = core::mem::transmute::<*mut u8, *mut T>(alloc(
                 DEFAULT_VEC_CAP * core::mem::size_of::<T>(),
@@ -49,7 +49,7 @@ impl<T: Copy> _Vec<T> {
     }
 
     pub fn with_capacity(cap: usize) -> Self {
-        trace!("Creating Vec with {} capacity", cap);
+        traceln!("Creating Vec with {} capacity", cap);
         unsafe {
             let t_ptr =
                 core::mem::transmute::<*mut u8, *mut T>(alloc(cap * core::mem::size_of::<T>()));
@@ -140,7 +140,7 @@ impl<T: Copy> Default for _Vec<T> {
 
 impl<T: Sized> Drop for _Vec<T> {
     fn drop(&mut self) {
-        trace!("Dropping Vec");
+        traceln!("Dropping Vec");
         free(self.data.as_ptr())
     }
 }

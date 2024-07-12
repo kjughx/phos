@@ -64,9 +64,9 @@ impl FatDirectory {
     }
 
     pub fn find(&self, stream: &mut dyn Stream, name: &str) -> Option<FatItem> {
-        trace!();
+        traceln!();
         for item in self.items.into_iter() {
-            trace!("{}", item.filename());
+            traceln!("{}", item.filename());
             if item.filename() == name {
                 return Some(FatItem::new(stream, item));
             }

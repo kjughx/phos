@@ -68,7 +68,17 @@ macro_rules! _func {
 #[macro_export]
 #[doc(hidden)]
 #[cfg(feature = "trace")]
-macro_rules! _trace {
+macro_rules! trace {
+    () => ($crate::__trace!("[{}:{}] {}", file!(), line!(), $crate::_func!()));
+    ($fmt:expr) => ($crate::__trace!(concat!("[{}:{}] ", $fmt), file!(), line!()));
+    ($fmt:expr, $($arg:tt)*) => ($crate::__trace!(
+        concat!("[{}:{}] ", $fmt), file!(), line!(), $($arg)*));
+}
+
+#[macro_export]
+#[doc(hidden)]
+#[cfg(feature = "trace")]
+macro_rules! traceln {
     () => ($crate::__trace!("[{}:{}] {}\n", file!(), line!(), $crate::_func!()));
     ($fmt:expr) => ($crate::__trace!(concat!("[{}:{}] ", $fmt, "\n"), file!(), line!()));
     ($fmt:expr, $($arg:tt)*) => ($crate::__trace!(

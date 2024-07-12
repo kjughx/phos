@@ -30,7 +30,7 @@ impl Lock {
 
     fn unlock(&self) {
         assert!(self.locked.load(Ordering::Acquire));
-        trace!("Unlocking {}", self.id);
+        // traceln!("Unlocking {}", self.id);
         self.locked.store(false, Ordering::Release);
     }
 

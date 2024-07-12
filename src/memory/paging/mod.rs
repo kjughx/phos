@@ -1,20 +1,24 @@
 use crate::prelude::*;
 
-mod r#extern;
 pub mod pagedirectory;
 pub mod pagetable;
 
 use pagedirectory::PageDirectory;
 
-static KERNEL_DIRECTORY: Global<PageDirectory> = Global::new(
+static mut KERNEL_DIRECTORY: Global<PageDirectory> = Global::new(
     || PageDirectory::new(PAGE_IS_WRITABLE | PAGE_IS_PRESENT | PAGE_ACCESS_ALL),
     "KERNEL_PAGE_DIRECTORY",
 );
 
 pub struct KernelPage;
 impl KernelPage {
+    pub fn get() -> PageDirectory {
+        let directory = unsafe { lock!(KERNEL_DIRECTORY) };
+        directory.inner().clone()
+    }
+
     pub fn load() {
-        let kernel_directory = lock!(KERNEL_DIRECTORY);
+        let kernel_directory = unsafe { lock!(KERNEL_DIRECTORY) };
         kernel_directory.load();
     }
 }

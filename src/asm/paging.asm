@@ -4,7 +4,7 @@ section .asm
 global paging_load_directory
 global enable_paging
 
-paging_load_directory:
+_paging_load_directory:
     push ebp
     mov ebp, esp
 
@@ -14,7 +14,7 @@ paging_load_directory:
     pop ebp
     ret
 
-enable_paging:
+_enable_paging:
     push ebp
     mov ebp, esp
 

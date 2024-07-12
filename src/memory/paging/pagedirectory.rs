@@ -1,10 +1,10 @@
 use crate::prelude::*;
+use core::ops::Range;
 
 use crate::{lock, Error, Global};
 
 use super::{
-    pagetable::{PageTable, PageTableEntry, TABLE_SIZE},
-    r#extern::load_directory,
+    pagetable::{PageTable, PageTableEntry, ENTRY_SIZE},
     Addr, Flags, Page, ENTRIES_PER_TABLE, PAGE_SIZE,
 };
 
@@ -12,19 +12,41 @@ use super::{
 pub struct PageDirectory(*mut PageTable);
 
 static mut CURRENT_DIRECTORY: Global<PageDirectory> =
-    Global::new(|| PageDirectory::new(0), "CURRENT PAGE DIRECTORY");
+    Global::new(|| PageDirectory::new(0), "CURRENT_DIRECTORY");
 
 impl PageDirectory {
     pub fn new(flags: Flags) -> Self {
-        let tables: *mut PageTable = alloc(ENTRIES_PER_TABLE * TABLE_SIZE);
+        let tables: *mut PageTable = alloc(ENTRIES_PER_TABLE * ENTRY_SIZE);
+        trace!("tables address: {:x}", tables as usize);
 
-        for entry in 0..ENTRIES_PER_TABLE {
+        for dentry in 0..ENTRIES_PER_TABLE {
             unsafe {
-                tables.add(entry).write(PageTable::new(entry, flags));
+                tables
+                    .add(dentry)
+                    .write(PageTable::new(Page(dentry), flags));
             }
         }
 
         Self(tables)
+    }
+
+    pub fn inspect(&self, drange: Range<usize>, trange: Range<usize>) {
+        traceln!("Page Directory");
+        for i in drange {
+            unsafe {
+                __trace!("\n\nPage {} 0x{:x}\n\n", i, (*self.0.add(i)).0 as usize);
+            }
+            // let mut k = 0;
+            // for j in trange.clone() {
+            //     let entry = page.get(crate::memory::paging::Offset(j));
+            //     __trace!("0x{:x} - 0b{:b}\t", entry.addr().0, entry.flags());
+            //     k += 1;
+            //     if k % 5 == 0 {
+            //         __trace!("\n");
+            //         k = 0;
+            //     }
+            // }
+        }
     }
 
     fn free(self) {
@@ -38,8 +60,15 @@ impl PageDirectory {
 
     pub fn load(&self) {
         let mut current_directory = unsafe { lock!(CURRENT_DIRECTORY) };
-        load_directory(self.0 as *const usize);
+
         *current_directory = *self;
+        unsafe {
+            asm!(
+                r#"
+                mov cr3, eax
+            "#, in("eax") current_directory.inner().0
+            )
+        }
     }
 
     fn get_table(&self, page: Page) -> PageTable {

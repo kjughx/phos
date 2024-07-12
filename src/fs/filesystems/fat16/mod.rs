@@ -77,7 +77,7 @@ impl Fat16 {
     }
 
     fn cluster_to_sector(&self, cluster: usize) -> usize {
-        trace!(
+        traceln!(
             "{} {}",
             self.root_dir.end,
             self.header.primary_header.sectors_per_cluster
@@ -167,7 +167,7 @@ impl FileDescriptor for FatFileDescriptor {
             .cluster_to_sector(self.item.first_cluster());
 
         assert!(self.pos == 0, "No support for reading twice yet");
-        trace!("{}", disk.sector_size);
+        traceln!("{}", disk.sector_size);
         stream.seek_sector(start_sector);
         stream.read(buf, size * count);
 

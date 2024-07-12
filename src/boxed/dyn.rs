@@ -21,7 +21,7 @@ impl<T> _Dyn<T> {
     }
 
     pub fn drop(self) {
-        trace!("Dropping Dyn");
+        traceln!("Dropping Dyn");
         free::<T>(self.0.as_ptr())
     }
 }

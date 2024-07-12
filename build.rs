@@ -9,6 +9,7 @@ fn main() {
     cc::Build::new()
         .flag("-nostdlib")
         .file("src/c/memory.c")
+        .object("build/asm/paging.asm.o")
         .compile("memory");
 
     cc::Build::new()

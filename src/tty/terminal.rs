@@ -7,24 +7,22 @@ use super::TypeWriter;
 const VGA_WIDTH: usize = 80;
 const VGA_HEIGHT: usize = 25;
 
-static mut TERMINAL: Global<TypeWriter> = Global::new(
-    || TypeWriter::new(0xB8000, VGA_WIDTH, VGA_HEIGHT),
-    "TERMINAL",
-);
+static mut TERMINAL: Global<Terminal> = Global::new(Terminal::new, "TERMINAL");
 
-pub struct Terminal;
+pub struct Terminal(TypeWriter);
 impl Terminal {
+    fn new() -> Self {
+        Self(TypeWriter::new(0xB8000, VGA_WIDTH, VGA_HEIGHT))
+    }
     pub fn init() {
         let mut terminal = unsafe { lock!(TERMINAL) };
-        terminal.init()
+        terminal.0.init()
     }
     pub fn print(args: fmt::Arguments) {
         let mut terminal = unsafe { lock!(TERMINAL) };
-        terminal.write_fmt(args).unwrap()
+        terminal.0.write_fmt(args).unwrap()
     }
 }
-
-pub fn init_screen() {}
 
 #[macro_export]
 macro_rules! __print {

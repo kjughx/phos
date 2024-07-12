@@ -15,7 +15,7 @@ pub struct _Array<T> {
 
 impl<T> _Array<T> {
     pub fn new(cap: usize) -> Self {
-        trace!("Creating DynArray with {} capacity", cap);
+        traceln!("Creating DynArray with {} capacity", cap);
         unsafe {
             let t_ptr =
                 core::mem::transmute::<*mut u8, *mut T>(alloc(cap * core::mem::size_of::<T>()));
