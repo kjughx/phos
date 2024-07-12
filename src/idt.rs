@@ -2,9 +2,10 @@ extern "C" {
     fn _idt_init();
 }
 
-pub struct Idt;
-impl Idt {
+pub struct IDT;
+impl IDT {
     pub fn init() {
         unsafe { _idt_init() }
     }
 }
+

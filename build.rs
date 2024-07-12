@@ -13,10 +13,9 @@ fn main() {
         .compile("memory");
 
     cc::Build::new()
-        .flag("-nostdlib")
-        .file("src/c/gdt.c")
-        .object("build/asm/gdt.asm.o")
-        .compile("gdt");
+        .object("build/asm/tss.asm.o")
+        .object("build/asm/task.asm.o")
+        .compile("task");
 
     if std::env::var("PROFILE").unwrap() == "debug" {
         println!("cargo:rustc-cfg=feature=\"trace\"");

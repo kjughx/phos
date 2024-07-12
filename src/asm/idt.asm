@@ -4,7 +4,6 @@ extern no_interrupt_handler
 extern interrupt_handler
 
 global idt_load
-global interrupt_pointer_table
 idt_load:
     push ebp
     mov ebp, esp
@@ -52,6 +51,7 @@ tmp_res: dd 0
     dd int%1
 %endmacro
 
+global interrupt_pointer_table
 interrupt_pointer_table:
 %assign i 0
 %rep 512

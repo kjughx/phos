@@ -9,6 +9,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "41c270e7540d725e65ac7f1b212ac8ce349719624d7bcff99f8e2e488e8cf03f"
 
 [[package]]
+name = "interrupts"
+version = "0.1.0"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "packed_macro"
 version = "0.1.0"
 dependencies = [
@@ -40,6 +49,7 @@ name = "ruix"
 version = "0.1.0"
 dependencies = [
  "cc",
+ "interrupts",
  "packed_macro",
 ]
 
