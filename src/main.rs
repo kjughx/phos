@@ -4,7 +4,7 @@
 use core::hint;
 
 use ruix::{
-    disk::Disk, fs::Vfs, gdt::GDT, idt::IDT, memory::paging::KernelPage, println,
+    disk::Disk, fs::Vfs, gdt::GDT, idt::IDT, memory::paging::{KernelPage, Paging}, println,
     tty::terminal::Terminal,
 };
 
@@ -26,7 +26,8 @@ pub extern "C" fn kernel_main() -> ! {
         Err(_) => println!("Could not resolve disk 0"),
     }
 
-    let kerneldirectory = KernelPage::load();
+    Paging::switch(KernelPage::get());
+    Paging::enable();
 
     println!("Hello, World!");
     loop {

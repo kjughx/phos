@@ -1,5 +1,3 @@
-use crate::prelude::*;
-
 pub mod global;
 pub mod mutex;
 

@@ -1,29 +1,25 @@
 use crate::prelude::*;
 use core::ops::Range;
 
-use crate::{lock, Error, Global};
+use crate::Error;
 
 use super::{
     pagetable::{PageTable, PageTableEntry, ENTRY_SIZE},
-    Addr, Flags, Page, ENTRIES_PER_TABLE, PAGE_SIZE,
+    Addr, Flags, Page, Offset, ENTRIES_PER_TABLE, PAGE_SIZE,
 };
 
 #[derive(Clone, Copy)]
 pub struct PageDirectory(*mut PageTable);
 
-static mut CURRENT_DIRECTORY: Global<PageDirectory> =
-    Global::new(|| PageDirectory::new(0), "CURRENT_DIRECTORY");
-
 impl PageDirectory {
     pub fn new(flags: Flags) -> Self {
-        let tables: *mut PageTable = alloc(ENTRIES_PER_TABLE * ENTRY_SIZE);
-        trace!("tables address: {:x}", tables as usize);
+        let tables = alloc::<PageTable>(ENTRIES_PER_TABLE * ENTRY_SIZE);
 
         for dentry in 0..ENTRIES_PER_TABLE {
             unsafe {
                 tables
                     .add(dentry)
-                    .write(PageTable::new(Page(dentry), flags));
+                    .write(PageTable::new(Offset(dentry * ENTRIES_PER_TABLE * PAGE_SIZE), flags));
             }
         }
 
@@ -35,17 +31,18 @@ impl PageDirectory {
         for i in drange {
             unsafe {
                 __trace!("\n\nPage {} 0x{:x}\n\n", i, (*self.0.add(i)).0 as usize);
+            };
+            let page = self.get_table(Page(i));
+            let mut k = 0;
+            for j in trange.clone() {
+                let entry = page.get(crate::memory::paging::Offset(j));
+                __trace!("0x{:x} - 0b{:b}\t", entry.addr().0, entry.flags());
+                k += 1;
+                if k % 5 == 0 {
+                    __trace!("\n");
+                    k = 0;
+                }
             }
-            // let mut k = 0;
-            // for j in trange.clone() {
-            //     let entry = page.get(crate::memory::paging::Offset(j));
-            //     __trace!("0x{:x} - 0b{:b}\t", entry.addr().0, entry.flags());
-            //     k += 1;
-            //     if k % 5 == 0 {
-            //         __trace!("\n");
-            //         k = 0;
-            //     }
-            // }
         }
     }
 
@@ -59,14 +56,11 @@ impl PageDirectory {
     }
 
     pub fn load(&self) {
-        let mut current_directory = unsafe { lock!(CURRENT_DIRECTORY) };
-
-        *current_directory = *self;
         unsafe {
             asm!(
                 r#"
                 mov cr3, eax
-            "#, in("eax") current_directory.inner().0
+            "#, in("eax") self.0
             )
         }
     }
@@ -78,8 +72,13 @@ impl PageDirectory {
     fn set(&mut self, vaddr: Addr, entry: PageTableEntry) {
         assert!(vaddr.is_aligned());
 
-        self.get_table(vaddr.as_page())
-            .set(vaddr.as_offset(), entry);
+        let dentry = vaddr.as_page();
+        let mut table = self.get_table(dentry);
+
+
+        let tentry = vaddr.as_offset();
+
+        table.set(tentry, entry)
     }
 
     pub fn map(&mut self, vaddr: Addr, paddr: Addr, flags: Flags) -> Result<(), Error> {

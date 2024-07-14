@@ -1,10 +1,9 @@
-use crate::prelude::*;
-
-use super::{Addr, Flags, Offset, Page, ENTRIES_PER_TABLE, PAGE_SIZE};
+use super::{Addr, Flags, Offset, ENTRIES_PER_TABLE, PAGE_SIZE};
 use crate::{alloc, free};
 
 #[derive(Clone, Copy)]
 pub struct PageTableEntry(usize);
+#[derive(Clone, Copy)]
 pub struct PageTable(pub *mut PageTableEntry);
 
 pub const ENTRY_SIZE: usize = core::mem::size_of::<PageTableEntry>();
@@ -25,9 +24,8 @@ impl PageTableEntry {
 }
 
 impl PageTable {
-    pub fn new(offset: Page, flags: Flags) -> Self {
+    pub fn new(offset: Offset, flags: Flags) -> Self {
         let table: *mut PageTableEntry = alloc(ENTRIES_PER_TABLE * ENTRY_SIZE);
-        trace!("table address: {:x}", table as usize);
         for entry in 0..ENTRIES_PER_TABLE {
             let addr = Addr(offset.0 + entry * PAGE_SIZE);
             unsafe {
@@ -44,7 +42,10 @@ impl PageTable {
     }
 
     pub fn from_ptr(ptr: *mut PageTable) -> Self {
-        Self(((ptr as usize) & 0xfffff000) as *mut PageTableEntry)
+        let table_with_flags = unsafe { *ptr };
+        let table_ptr = table_with_flags.0 as usize & 0xfffff000;
+        let table = Self(table_ptr as *mut PageTableEntry);
+        table
     }
 
     pub fn get(&self, offset: Offset) -> PageTableEntry {

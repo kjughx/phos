@@ -29,7 +29,7 @@ impl<T, F: FnOnce() -> T> _Global<T, F> {
 
     pub fn lock(&self, file: &'static str, line: u32) -> GlobalUnlocked<'_, T, F> {
         self.lock.lock();
-        // __trace!("[{}:{}] Locking {}\n", file, line, self.id());
+        __trace!("[{}:{}] Locking {}\n", file, line, self.id());
         GlobalUnlocked::new(self)
     }
 

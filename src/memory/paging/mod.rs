@@ -21,6 +21,32 @@ impl KernelPage {
         let kernel_directory = unsafe { lock!(KERNEL_DIRECTORY) };
         kernel_directory.load();
     }
+
+    pub fn map(vaddr: Addr, paddr: Addr, flags: Flags) -> Result<(), Error> {
+        let mut directory = unsafe { lock!(KERNEL_DIRECTORY) };
+        directory.map(vaddr, paddr, flags)
+    }
+}
+
+static mut CURRENT_DIRECTORY: Global<PageDirectory> =
+    Global::new(|| PageDirectory::new(0), "CURRENT_DIRECTORY");
+
+pub struct Paging;
+impl Paging {
+    pub fn enable() {
+        unsafe {
+            core::arch::asm!(r#"
+                mov eax, cr0
+                or eax, 0x80000000
+                mov cr0, eax
+                "#)
+        }
+    }
+
+    pub fn switch(directory: PageDirectory) {
+        directory.load();
+        unsafe { *lock!(CURRENT_DIRECTORY) = directory} ;
+    }
 }
 
 const ENTRIES_PER_TABLE: usize = 1024;
@@ -58,7 +84,7 @@ impl Addr {
     }
 
     fn as_offset(&self) -> Offset {
-        Offset(self.0 % (ENTRIES_PER_TABLE * PAGE_SIZE))
+        Offset((self.0 % (ENTRIES_PER_TABLE * PAGE_SIZE)) / PAGE_SIZE)
     }
 
     fn as_page(&self) -> Page {
