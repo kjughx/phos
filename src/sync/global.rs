@@ -23,26 +23,29 @@ impl<T, F: FnOnce() -> T> _Global<T, F> {
     pub const fn new(f: F, id: &'static str) -> Self {
         Self {
             data: UnsafeCell::new(State::Uninit(f)),
-            lock: Lock::new(id),
+            lock: Lock::new(Some(id)),
         }
     }
 
-    pub fn lock(&self, file: &'static str, line: u32) -> GlobalUnlocked<'_, T, F> {
+    pub fn lock(&self, file: &'static str, line: u32) -> GlobalInner<'_, T, F> {
         self.lock.lock();
         __trace!("[{}:{}] Locking {}\n", file, line, self.id());
-        GlobalUnlocked::new(self)
+        GlobalInner::new(self)
     }
 
     pub fn id(&self) -> &'static str {
-        self.lock.id()
+        match self.lock.id {
+            Some(id) => id,
+            None => "UN-NAMED",
+        }
     }
 }
 
-pub struct GlobalUnlocked<'a, T: 'a, F: FnOnce() -> T = fn() -> T> {
+pub struct GlobalInner<'a, T: 'a, F: FnOnce() -> T = fn() -> T> {
     global: &'a _Global<T, F>,
 }
 
-impl<'a, T: 'a, F: FnOnce() -> T> GlobalUnlocked<'a, T, F> {
+impl<'a, T: 'a, F: FnOnce() -> T> GlobalInner<'a, T, F> {
     fn new(lock: &'a _Global<T, F>) -> Self {
         Self { global: lock }
     }
@@ -91,21 +94,21 @@ impl<'a, T: 'a, F: FnOnce() -> T> GlobalUnlocked<'a, T, F> {
     }
 }
 
-impl<'a, T: 'a, F: FnOnce() -> T> Drop for GlobalUnlocked<'a, T, F> {
+impl<'a, T: 'a, F: FnOnce() -> T> Drop for GlobalInner<'a, T, F> {
     fn drop(&mut self) {
         self.global.lock.unlock();
     }
 }
 
-impl<'a, T: 'a, F: FnOnce() -> T> Deref for GlobalUnlocked<'a, T, F> {
+impl<'a, T: 'a, F: FnOnce() -> T> Deref for GlobalInner<'a, T, F> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
-        GlobalUnlocked::inner(self)
+        GlobalInner::inner(self)
     }
 }
 
-impl<'a, T: 'a, F: FnOnce() -> T> DerefMut for GlobalUnlocked<'a, T, F> {
+impl<'a, T: 'a, F: FnOnce() -> T> DerefMut for GlobalInner<'a, T, F> {
     fn deref_mut(&mut self) -> &mut Self::Target {
-        GlobalUnlocked::inner_mut(self)
+        GlobalInner::inner_mut(self)
     }
 }

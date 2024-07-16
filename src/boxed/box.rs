@@ -6,8 +6,8 @@ use core::{
     ptr::Unique,
 };
 
-pub struct _Box<T: ?Sized>(Unique<T>);
-impl<T> _Box<T> {
+pub struct Box<T: ?Sized>(Unique<T>);
+impl<T> Box<T> {
     pub fn new(x: T) -> Self {
         unsafe {
             let t_ptr = alloc::<T>(core::mem::size_of::<T>());
@@ -17,22 +17,22 @@ impl<T> _Box<T> {
     }
 }
 
-impl<T: ?Sized> Drop for _Box<T> {
+impl<T: ?Sized> Drop for Box<T> {
     fn drop(&mut self) {
         free::<T>(self.0.as_ptr())
     }
 }
 
-impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<_Box<U>> for _Box<T> {}
+impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<Box<U>> for Box<T> {}
 
-impl<T: ?Sized> Deref for _Box<T> {
+impl<T: ?Sized> Deref for Box<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         unsafe { self.0.as_ref() }
     }
 }
 
-impl<T: ?Sized> DerefMut for _Box<T> {
+impl<T: ?Sized> DerefMut for Box<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.0.as_mut() }
     }

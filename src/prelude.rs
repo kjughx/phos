@@ -9,10 +9,10 @@ pub use crate::traceln;
 pub use crate::lock;
 pub use crate::sync::global::_Global as Global;
 
-pub use crate::boxed::arr::_Array as Array;
-pub use crate::boxed::r#box::_Box as Box;
-pub use crate::boxed::r#dyn::_Dyn as Dyn;
-pub use crate::boxed::vec::_Vec as Vec;
+pub use crate::boxed::arr::Array;
+pub use crate::boxed::r#box::Box;
+pub use crate::boxed::r#dyn::Dyn;
+pub use crate::boxed::vec::Vec;
 
 pub use crate::memory::heap::{alloc, free, realloc};
 

@@ -7,13 +7,12 @@ use core::{
 };
 
 #[derive(Clone)]
-#[doc(hidden)]
-pub struct _Array<T> {
+pub struct Array<T> {
     data: Unique<T>,
     cap: usize,
 }
 
-impl<T> _Array<T> {
+impl<T> Array<T> {
     pub fn new(cap: usize) -> Self {
         traceln!("Creating DynArray with {} capacity", cap);
         unsafe {
@@ -54,21 +53,21 @@ impl<T> _Array<T> {
     }
 }
 
-impl<T> Index<isize> for _Array<T> {
+impl<T> Index<isize> for Array<T> {
     type Output = T;
     fn index(&self, index: isize) -> &Self::Output {
         unsafe { self.data.as_ptr().offset(index).as_ref().unwrap() }
     }
 }
 
-impl<T> IndexMut<isize> for _Array<T> {
+impl<T> IndexMut<isize> for Array<T> {
     fn index_mut(&mut self, index: isize) -> &mut Self::Output {
         unsafe { self.data.as_ptr().offset(index).as_mut().unwrap() }
     }
 }
 
 pub struct ArrIter<'a, T> {
-    arr: &'a _Array<T>,
+    arr: &'a Array<T>,
     index: isize,
 }
 
@@ -84,7 +83,7 @@ impl<'a, T> Iterator for ArrIter<'a, T> {
     }
 }
 
-impl<'a, T> IntoIterator for &'a _Array<T> {
+impl<'a, T> IntoIterator for &'a Array<T> {
     type Item = &'a T;
     type IntoIter = ArrIter<'a, T>;
     fn into_iter(self) -> Self::IntoIter {
@@ -95,7 +94,7 @@ impl<'a, T> IntoIterator for &'a _Array<T> {
     }
 }
 
-impl<'a, T> IntoIterator for &'a mut _Array<T> {
+impl<'a, T> IntoIterator for &'a mut Array<T> {
     type Item = &'a mut T;
     type IntoIter = IterMut<'a, T>;
     fn into_iter(self) -> Self::IntoIter {

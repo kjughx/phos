@@ -11,10 +11,10 @@ pub struct Mutex<T> {
 }
 
 impl<T> Mutex<T> {
-    pub fn new(data: T, id: &'static str) -> Self {
+    pub fn new(data: T) -> Self {
         Self {
             data: UnsafeCell::new(data),
-            lock: Lock::new(id),
+            lock: Lock::new(None),
         }
     }
 

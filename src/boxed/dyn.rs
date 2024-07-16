@@ -3,11 +3,11 @@ use crate::prelude::*;
 use core::{
     marker::Unsize,
     ops::{CoerceUnsized, Deref, DerefMut},
-    ptr::Unique,
+    ptr::{NonNull, Unique},
 };
 
-pub struct _Dyn<T: ?Sized>(Unique<T>);
-impl<T> _Dyn<T> {
+pub struct Dyn<T: ?Sized>(Unique<T>);
+impl<T> Dyn<T> {
     pub fn new(x: T) -> Self {
         unsafe {
             let t_ptr = alloc::<T>(core::mem::size_of::<T>());
@@ -16,8 +16,12 @@ impl<T> _Dyn<T> {
         }
     }
 
-    pub fn as_ptr(&mut self) -> *mut T {
-        self.0.as_ptr()
+    pub fn as_ptr(&self) -> NonNull<T> {
+        self.0.into()
+    }
+
+    pub unsafe fn from_ptr(ptr: *mut T) -> Self {
+        unsafe { Self(Unique::new_unchecked(ptr)) }
     }
 
     pub fn drop(self) {
@@ -26,16 +30,16 @@ impl<T> _Dyn<T> {
     }
 }
 
-impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<_Dyn<U>> for _Dyn<T> {}
+impl<T: ?Sized + Unsize<U>, U: ?Sized> CoerceUnsized<Dyn<U>> for Dyn<T> {}
 
-impl<T: ?Sized> Deref for _Dyn<T> {
+impl<T: ?Sized> Deref for Dyn<T> {
     type Target = T;
     fn deref(&self) -> &Self::Target {
         unsafe { self.0.as_ref() }
     }
 }
 
-impl<T: ?Sized> DerefMut for _Dyn<T> {
+impl<T: ?Sized> DerefMut for Dyn<T> {
     fn deref_mut(&mut self) -> &mut Self::Target {
         unsafe { self.0.as_mut() }
     }
