@@ -1,5 +1,6 @@
 use core::arch::asm;
 
+#[no_mangle]
 pub extern "C" fn insb(port: u16) -> u8 {
     let val: u8;
     unsafe {
@@ -11,6 +12,7 @@ pub extern "C" fn insb(port: u16) -> u8 {
     val
 }
 
+#[no_mangle]
 pub extern "C" fn insw(port: u16) -> u16 {
     let val: u16;
     unsafe {
@@ -21,6 +23,7 @@ pub extern "C" fn insw(port: u16) -> u16 {
     val
 }
 
+#[no_mangle]
 pub extern "C" fn outb(port: u16, val: u8) {
     unsafe {
         asm!(
@@ -29,6 +32,7 @@ pub extern "C" fn outb(port: u16, val: u8) {
     }
 }
 
+#[no_mangle]
 pub extern "C" fn outw(port: u16, val: u16) {
     unsafe {
         asm!(
