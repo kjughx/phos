@@ -8,24 +8,11 @@ const USER_CODE_SEGMENT: usize = 0x1B;
 const PROGRAM_VIRTUAL_STACK_START: usize = 0x3FF000;
 
 #[allow(dead_code)]
-pub struct Registers {
-    edi: usize,
-    esi: usize,
-    ebp: usize,
-    ebx: usize,
-    edx: usize,
-    ecx: usize,
-    eax: usize,
 
-    ip: usize,
-    cs: usize,
-    flags: usize,
-    esp: usize,
-    ss: usize,
-}
+pub type Registers = InterruptFrame;
 
-impl Default for Registers {
-    fn default() -> Self {
+impl Registers {
+    pub fn user_default() -> Self {
         Self {
             edi: 0,
             esi: 0,
@@ -34,31 +21,47 @@ impl Default for Registers {
             edx: 0,
             ecx: 0,
             eax: 0,
+            unused: 0,
 
             ip: PROGRAM_VIRTUAL_ADDRESS,
             cs: USER_CODE_SEGMENT,
             flags: 0,
-            esp: PROGRAM_VIRTUAL_STACK_START,
+            sp: PROGRAM_VIRTUAL_STACK_START,
             ss: USER_DATA_SEGMENT,
         }
+    }
+
+    pub fn save(&mut self, frame: InterruptFrame) {
+        self.edi = frame.edi;
+        self.esi = frame.esi;
+        self.ebp = frame.ebp;
+        self.ebx = frame.ebx;
+        self.edx = frame.edx;
+        self.ecx = frame.ecx;
+        self.eax = frame.eax;
+        self.ip = frame.ip;
+        self.cs = frame.cs;
+        self.flags = frame.flags;
+        self.sp = frame.sp;
+        self.ss = frame.ss;
     }
 }
 
 #[packed]
 pub struct InterruptFrame {
-    pub edi: u32,
-    pub esi: u32,
-    pub ebp: u32,
-    pub unused: u32,
-    pub ebx: u32,
-    pub edx: u32,
-    pub ecx: u32,
-    pub eax: u32,
-    pub ip: u32,
-    pub cs: u32,
-    pub flags: u32,
-    pub sp: u32,
-    pub ss: u32,
+    pub edi: usize,
+    pub esi: usize,
+    pub ebp: usize,
+    pub unused: usize,
+    pub ebx: usize,
+    pub edx: usize,
+    pub ecx: usize,
+    pub eax: usize,
+    pub ip: usize,
+    pub cs: usize,
+    pub flags: usize,
+    pub sp: usize,
+    pub ss: usize,
 }
 
 impl Display for InterruptFrame {

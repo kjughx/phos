@@ -77,12 +77,20 @@ impl Addr {
         Self(self.0 + (PAGE_SIZE - self.0 % PAGE_SIZE))
     }
 
-    fn align_lower(&self) -> Self {
+    pub fn align_lower(&self) -> Self {
         if self.is_aligned() {
             return *self;
         }
 
-        Self(self.0 - self.0 % PAGE_SIZE)
+        Self(self.0 - (PAGE_SIZE - self.0 % PAGE_SIZE))
+    }
+
+    pub fn align_upper(&self) -> Self {
+        if self.is_aligned() {
+            return *self;
+        }
+
+        Self(self.0 + self.0 % PAGE_SIZE)
     }
 
     fn is_aligned(&self) -> bool {

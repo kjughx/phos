@@ -7,7 +7,9 @@ use ruix::{
     gdt::GDT,
     idt::IDT,
     paging::{KernelPage, Paging},
-    println, traceln,
+    println,
+    process::Process,
+    traceln,
     tty::Terminal,
 };
 
@@ -27,6 +29,7 @@ pub extern "C" fn kernel_main() -> ! {
 
     KernelPage::switch();
     Paging::enable();
+    Process::new("0:/blank");
 
     println!("Hello, World!");
     traceln!("Hello, World!");
